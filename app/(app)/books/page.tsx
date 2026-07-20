@@ -1,0 +1,108 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { booksApi } from '@/lib/endpoints';
+import { Spinner } from '@/components/ui/Spinner';
+import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Alert } from '@/components/ui/Alert';
+import { Select } from '@/components/ui/Input';
+import { ApiErrorShape, Book, ReadingLevel } from '@/lib/types';
+
+const READING_LEVELS: ReadingLevel[] = ['beginner', 'intermediate', 'advanced'];
+const AGE_GROUPS = ['3-5', '6-8', '9-11', '12+'];
+
+interface Filters {
+  age_group: string;
+  reading_level: string;
+}
+
+export default function BooksPage() {
+  const [books, setBooks] = useState<Book[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<Filters>({ age_group: '', reading_level: '' });
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setBooks(null);
+      try {
+        const params: Record<string, string> = {};
+        if (filters.age_group) params.age_group = filters.age_group;
+        if (filters.reading_level) params.reading_level = filters.reading_level;
+        const res = await booksApi.list(params);
+        if (!cancelled) setBooks(res.data.books);
+      } catch (err) {
+        if (!cancelled) setError((err as ApiErrorShape).message);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [filters]);
+
+  return (
+    <div>
+      <h1 className="text-2xl font-semibold text-brand-900">Books</h1>
+      <p className="mt-1 text-sm text-muted">Browse the library and assign a title to a reading session.</p>
+
+      <div className="mt-6 flex flex-wrap gap-3">
+        <Select
+          value={filters.age_group}
+          onChange={(e) => setFilters({ ...filters, age_group: e.target.value })}
+          className="w-40"
+        >
+          <option value="">All ages</option>
+          {AGE_GROUPS.map((g) => (
+            <option key={g} value={g}>
+              {g}
+            </option>
+          ))}
+        </Select>
+        <Select
+          value={filters.reading_level}
+          onChange={(e) => setFilters({ ...filters, reading_level: e.target.value })}
+          className="w-48"
+        >
+          <option value="">All reading levels</option>
+          {READING_LEVELS.map((l) => (
+            <option key={l} value={l}>
+              {l}
+            </option>
+          ))}
+        </Select>
+      </div>
+
+      <div className="mt-6">
+        {!books && !error && (
+          <div className="flex justify-center py-16">
+            <Spinner size={28} />
+          </div>
+        )}
+        {error && <Alert>{error}</Alert>}
+        {books && books.length === 0 && (
+          <EmptyState title="No books match these filters" description="Try widening your search." />
+        )}
+        {books && books.length > 0 && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {books.map((book) => (
+              <Link
+                key={book.id}
+                href={`/books/${book.id}`}
+                className="card block p-5 transition-shadow hover:shadow-md"
+              >
+                <h3 className="mb-2 text-base font-semibold text-brand-900">{book.title}</h3>
+                <div className="flex flex-wrap gap-2">
+                  <Badge tone="brand">{book.age_group}</Badge>
+                  <Badge tone="neutral">{book.reading_level}</Badge>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
