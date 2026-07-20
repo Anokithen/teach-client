@@ -50,4 +50,49 @@
   .chip {
     @apply inline-flex items-center rounded-full bg-brand-400/15 px-2.5 py-1 text-xs font-medium text-brand-600;
   }
+
+  .recording-wave {
+    @apply flex h-10 items-center justify-center gap-1;
+  }
+
+  .recording-wave span {
+    width: 4px;
+    height: 12px;
+    border-radius: 999px;
+    background: linear-gradient(to top, #D6534B, #E0A438, #54ACBF, #8B5CF6);
+    animation: recording-wave 0.8s ease-in-out infinite alternate;
+  }
+
+  .recording-wave span:nth-child(3n + 1) { animation-delay: -0.55s; }
+  .recording-wave span:nth-child(3n + 2) { animation-delay: -0.25s; }
+  .recording-wave span:nth-child(4n) { animation-delay: -0.7s; }
+
+  @keyframes recording-wave {
+    from { height: 8px; opacity: 0.65; }
+    to { height: 38px; opacity: 1; }
+  }
+
+  .playback-wave {
+    @apply my-3 flex h-5 items-center justify-center gap-0.5 opacity-80;
+  }
+
+  .playback-wave span {
+    width: 5px;
+    height: 7px;
+    border-radius: 999px;
+    background: linear-gradient(to top, #54ACBF, #8B5CF6, #E0A438);
+  }
+
+  .playback-wave span:nth-child(3n + 1) { height: 14px; }
+  .playback-wave span:nth-child(4n + 2) { height: 20px; }
+  .playback-wave span:nth-child(5n) { height: 11px; }
+
+  .vibrant-audio-player {
+    min-height: 42px;
+    accent-color: #7C3AED;
+  }
+
+  .vibrant-audio-player::-webkit-media-controls-panel {
+    background: linear-gradient(90deg, #E0F7FA, #F3E8FF, #FEF3C7);
+  }
 }

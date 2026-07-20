@@ -15,9 +15,22 @@ import { useAuth } from '@/lib/auth-context';
 import { ApiErrorShape, VoiceProfile, VoiceProfileStatus } from '@/lib/types';
 
 const MAX_BYTES = 25 * 1024 * 1024;
+const ACCEPTED_EXTENSIONS = ['mp3', 'wav', 'webm', 'ogg', 'm4a', 'mp4'];
 const STATUS_TONE: Record<VoiceProfileStatus, 'warning' | 'success' | 'danger'> = {
   processing: 'warning', ready: 'success', failed: 'danger',
 };
+
+function RecordingWave() {
+  return <div className="recording-wave" aria-hidden="true">
+    {Array.from({ length: 13 }, (_, index) => <span key={index} />)}
+  </div>;
+}
+
+function PlaybackWave() {
+  return <div className="playback-wave" aria-hidden="true">
+    {Array.from({ length: 18 }, (_, index) => <span key={index} />)}
+  </div>;
+}
 
 export default function VoiceProfilesPage() {
   const { isAdmin } = useAuth();
@@ -33,10 +46,24 @@ export default function VoiceProfilesPage() {
   const [editLabel, setEditLabel] = useState('');
   const [saving, setSaving] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewingId, setPreviewingId] = useState<number | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const recorder = useRef<MediaRecorder | null>(null);
+  const recordingStream = useRef<MediaStream | null>(null);
+  const chunks = useRef<Blob[]>([]);
+  const previewAudio = useRef<HTMLAudioElement>(null);
+  const previewRequest = useRef(0);
 
   useEffect(() => { load(); }, []);
   useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
+  useEffect(() => () => {
+    if (recorder.current?.state !== 'inactive') recorder.current?.stop();
+    recordingStream.current?.getTracks().forEach((track) => track.stop());
+    if (recordingUrl) URL.revokeObjectURL(recordingUrl);
+  }, [recordingUrl]);
 
   async function load() {
     try { setProfiles((await voiceProfilesApi.list()).data.voice_profiles); }
@@ -48,18 +75,22 @@ export default function VoiceProfilesPage() {
     setCreateError(null);
     if (!selected) return setFile(null);
     const extension = selected.name.split('.').pop()?.toLowerCase();
-    if (!['mp3', 'wav'].includes(extension || '')) return setCreateError('Choose an MP3 or WAV file.');
-    if (selected.size > MAX_BYTES) return setCreateError('The recording must be smaller than 25 MB.');
+    if (!ACCEPTED_EXTENSIONS.includes(extension || '')) {
+      setFile(null);
+      return setCreateError('Choose a supported audio file.');
+    }
+    if (selected.size > MAX_BYTES) {
+      setFile(null);
+      return setCreateError('The recording must be smaller than 25 MB.');
+    }
     setFile(selected);
   }
 
-  async function onCreate(event: FormEvent) {
-    event.preventDefault();
-    if (!file) return setCreateError('Choose an MP3 or WAV recording.');
+  async function uploadRecording(recording: File) {
     setCreateError(null); setCreating(true);
     try {
       const data = new FormData();
-      data.append('audio', file);
+      data.append('audio', recording);
       if (label.trim()) data.append('label', label.trim());
       const res = await voiceProfilesApi.create(data);
       setProfiles((previous) => [res.data.voice_profile, ...(previous || [])]);
@@ -69,6 +100,68 @@ export default function VoiceProfilesPage() {
       const apiError = err as ApiErrorShape;
       setCreateError(apiError.fields?.length ? apiError.fields : apiError.message);
     } finally { setCreating(false); }
+  }
+
+  async function onCreate(event: FormEvent) {
+    event.preventDefault();
+    if (!file) return setCreateError('Record your voice or choose an audio file.');
+    await uploadRecording(file);
+  }
+
+  function extensionForMimeType(mimeType: string) {
+    if (mimeType.includes('ogg')) return 'ogg';
+    if (mimeType.includes('mp4')) return 'm4a';
+    return 'webm';
+  }
+
+  async function startRecording() {
+    setCreateError(null);
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+      setCreateError('Voice recording is not supported by this browser. Please choose an audio file instead.');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      recordingStream.current = stream;
+      const supportedType = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/ogg;codecs=opus']
+        .find((type) => MediaRecorder.isTypeSupported(type));
+      const mediaRecorder = supportedType ? new MediaRecorder(stream, { mimeType: supportedType }) : new MediaRecorder(stream);
+      recorder.current = mediaRecorder;
+      chunks.current = [];
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) chunks.current.push(event.data);
+      };
+      mediaRecorder.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        recordingStream.current = null;
+        const mimeType = mediaRecorder.mimeType || 'audio/webm';
+        const blob = new Blob(chunks.current, { type: mimeType });
+        if (!blob.size) {
+          setCreateError('No audio was captured. Please try recording again.');
+          return;
+        }
+        if (blob.size > MAX_BYTES) {
+          setCreateError('The recording must be smaller than 25 MB.');
+          return;
+        }
+        const recordedFile = new File([blob], `voice-recording-${Date.now()}.${extensionForMimeType(mimeType)}`, { type: mimeType });
+        if (recordingUrl) URL.revokeObjectURL(recordingUrl);
+        setRecordingUrl(URL.createObjectURL(blob));
+        setFile(recordedFile);
+        if (fileInput.current) fileInput.current.value = '';
+        void uploadRecording(recordedFile);
+      };
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      const name = (err as DOMException).name;
+      setCreateError(name === 'NotAllowedError' ? 'Microphone access was denied. Allow microphone access and try again.' : 'Could not start the microphone. Please try again.');
+    }
+  }
+
+  function stopRecording() {
+    if (recorder.current?.state === 'recording') recorder.current.stop();
+    setIsRecording(false);
   }
 
   async function onSave() {
@@ -83,11 +176,26 @@ export default function VoiceProfilesPage() {
   }
 
   async function onPreview(profile: VoiceProfile) {
+    const requestId = ++previewRequest.current;
+    previewAudio.current?.pause();
+    setPreviewUrl(null);
+    setPreviewError(null);
+    setPreviewingId(profile.id);
     try {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
       const res = await voiceProfilesApi.audio(profile.id);
-      setPreviewUrl(URL.createObjectURL(res.data));
-    } catch (err) { setError((err as ApiErrorShape).message); }
+      const url = URL.createObjectURL(res.data);
+      // If another recording was selected while this request was in flight,
+      // discard this response rather than replacing the active player.
+      if (requestId !== previewRequest.current) {
+        URL.revokeObjectURL(url);
+        return;
+      }
+      setPreviewUrl(url);
+    } catch (err) {
+      if (requestId === previewRequest.current) setPreviewError((err as ApiErrorShape).message);
+    } finally {
+      if (requestId === previewRequest.current) setPreviewingId(null);
+    }
   }
 
   async function onDelete() {
@@ -109,29 +217,58 @@ export default function VoiceProfilesPage() {
         <h2 className="mb-4 text-sm font-semibold text-brand-900">Stored voice profiles</h2>
         {!profiles && !error && <Spinner />}
         {error && <Alert>{error}</Alert>}
-        {profiles?.length === 0 && <EmptyState title="No recordings yet" description="Upload an MP3 or WAV recording to create a voice profile." />}
+        {profiles?.length === 0 && <EmptyState title="No recordings yet" description="Record your voice or upload an audio file to create a voice profile." />}
         {profiles && profiles.length > 0 && <ul className="divide-y divide-border">
           {profiles.map((profile) => <li key={profile.id} className="py-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div><p className="text-sm font-medium text-brand-900">{profile.label || `Voice profile #${profile.id}`}</p>
                 <p className="text-xs text-muted">{profile.owner_name && `${profile.owner_name} · `}Created {new Date(profile.created_at).toLocaleDateString()}</p></div>
               <div className="flex items-center gap-2"><Badge tone={STATUS_TONE[profile.status] || 'warning'}>{profile.status}</Badge>
-                <Button variant="ghost" onClick={() => onPreview(profile)}>Preview</Button>
+                <Button variant="ghost" loading={previewingId === profile.id} onClick={() => onPreview(profile)}>Play</Button>
                 <Button variant="ghost" onClick={() => { setEditing(profile); setEditLabel(profile.label || ''); }}>Edit</Button>
                 <Button variant="ghost" onClick={() => setPendingDelete(profile)}>Delete</Button></div>
             </div>
           </li>)}
         </ul>}
-        {previewUrl && <audio className="mt-4 w-full" controls autoPlay src={previewUrl}>Your browser cannot play this recording.</audio>}
+        {previewError && <Alert>{previewError}</Alert>}
+        {previewUrl && <div className="mt-4 overflow-hidden rounded-2xl border border-brand-400/30 bg-gradient-to-r from-cyan-50 via-violet-50 to-amber-50 p-4 shadow-sm">
+          <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-brand-600 to-violet-500 text-lg text-white shadow-md">♫</span><div><p className="text-sm font-semibold text-brand-900">Your voice is ready to play</p><p className="text-xs text-muted">Use the controls below to pause, replay, or seek.</p></div></div>
+          <PlaybackWave />
+          <audio ref={previewAudio} key={previewUrl} className="vibrant-audio-player w-full" controls autoPlay preload="metadata" src={previewUrl} onEnded={() => setPreviewUrl(null)} onError={() => setPreviewError('This recording could not be played. Please try again.')}>Your browser cannot play this recording.</audio>
+        </div>}
       </Card>
       {!isAdmin && <Card><h2 className="mb-4 text-sm font-semibold text-brand-900">Create a voice profile</h2>
         <form onSubmit={onCreate} className="space-y-4">
           <Input label="Label (optional)" value={label} onChange={(event) => setLabel(event.target.value)} />
-          <label className="block text-sm font-medium text-brand-900">Voice recording
-            <input ref={fileInput} type="file" accept="audio/mpeg,audio/wav,.mp3,.wav" required onChange={onFileChange} className="mt-1 block w-full text-sm text-muted" />
+          <div className={`overflow-hidden rounded-2xl border p-4 transition-colors ${isRecording ? 'border-danger/40 bg-gradient-to-br from-rose-50 via-amber-50 to-cyan-50' : 'border-brand-400/30 bg-gradient-to-br from-cyan-50 via-sky-50 to-violet-50'}`}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-brand-900">Record with your microphone</p>
+                <p className="mt-1 text-xs text-muted">When you stop, the recording is saved to Cloudinary automatically.</p>
+              </div>
+              <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-lg shadow-sm ${isRecording ? 'animate-pulse bg-danger text-white' : 'bg-gradient-to-br from-brand-600 to-violet-500 text-white'}`}>🎙️</span>
+            </div>
+            <div className="mt-4 flex min-h-12 items-center justify-center rounded-xl bg-white/70 px-3">
+              {isRecording ? <RecordingWave /> : <p className="text-xs font-medium text-brand-600">Ready to capture a story</p>}
+            </div>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              {!isRecording ? <button type="button" onClick={startRecording} disabled={creating} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 via-cyan-500 to-violet-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"><span>●</span> Start recording</button> :
+                <Button type="button" variant="danger" onClick={stopRecording}>■ Stop &amp; save</Button>}
+              {isRecording && <span className="text-sm font-semibold text-danger" aria-live="polite">Recording now…</span>}
+              {creating && <span className="text-sm text-muted" aria-live="polite">Saving to Cloudinary…</span>}
+            </div>
+            {recordingUrl && <div className="mt-3 rounded-xl bg-white/70 p-3"><div className="mb-2 flex items-center gap-2 text-xs font-semibold text-violet-700"><span>✨</span> Listen back before sharing</div><PlaybackWave /><audio key={recordingUrl} className="vibrant-audio-player w-full" controls preload="metadata" src={recordingUrl} onEnded={() => setRecordingUrl(null)} onError={() => setCreateError('This recording could not be played. Please record it again.')}>Your browser cannot play this recording.</audio></div>}
+          </div>
+          <label className="block">
+            <span className="text-sm font-semibold text-brand-900">Or upload an existing recording</span>
+            <input ref={fileInput} type="file" accept="audio/mpeg,audio/wav,audio/webm,audio/ogg,audio/mp4,.mp3,.wav,.webm,.ogg,.m4a,.mp4" onChange={onFileChange} className="sr-only" />
+            <span className="mt-2 flex cursor-pointer items-center justify-between gap-3 rounded-xl border-2 border-dashed border-violet-300 bg-gradient-to-r from-violet-50 via-fuchsia-50 to-amber-50 px-4 py-3 transition hover:border-brand-400 hover:shadow-sm">
+              <span className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-lg text-white">↑</span><span><span className="block text-sm font-semibold text-violet-700">Choose audio file</span><span className="block text-xs text-muted">Tap to browse your device</span></span></span>
+              <span className="max-w-28 truncate text-xs font-medium text-brand-600">{file?.name || 'No file chosen'}</span>
+            </span>
           </label>
-          <p className="-mt-2 text-xs text-muted">MP3 or WAV only, smaller than 25 MB. Upload only a voice you have permission to use.</p>
-          <Alert>{createError}</Alert><Button type="submit" loading={creating} className="w-full">Upload recording</Button>
+          <p className="-mt-2 text-xs text-muted">MP3, WAV, WebM, OGG, or M4A/MP4, smaller than 25 MB. Upload only a voice you have permission to use.</p>
+          <Alert>{createError}</Alert><Button type="submit" loading={creating} disabled={!file || isRecording} className="w-full">Upload selected file</Button>
         </form>
       </Card>
       }
