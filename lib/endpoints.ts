@@ -56,6 +56,8 @@ export const sessionsApi = {
     api.patch(`/api/reading-sessions/${id}`, payload),
   checkPronunciation: (id: number | string, payload: { sentence_index: number; transcript: string }) =>
     api.post(`/api/reading-sessions/${id}/pronunciation-check`, payload),
+  transcribePronunciation: (id: number | string, audio: FormData) =>
+    api.post(`/api/reading-sessions/${id}/pronunciation-transcript`, audio, { headers: { 'Content-Type': 'multipart/form-data' } }),
   generateFeedback: (id: number | string, payload: Record<string, unknown> = {}) =>
     api.post(`/api/reading-sessions/${id}/feedback`, payload),
   listFeedback: (id: number | string) => api.get(`/api/reading-sessions/${id}/feedback`),
