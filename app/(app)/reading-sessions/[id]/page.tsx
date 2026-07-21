@@ -145,14 +145,12 @@ export default function ReadingSessionPage() {
         try {
           const form = new FormData();
           form.append('audio', audio, 'my-reading.webm');
-          form.append('expected_text', sentences[sentenceIndex] || '');
-          const response = await fetch('/api/ai/transcribe', { method: 'POST', body: form });
-          const data = await response.json() as { transcript?: string; message?: string };
-          if (!response.ok) throw new Error(data.message || 'We could not understand that recording.');
-          setTranscript(data.transcript || '');
-          if (!data.transcript) setPronunciationError('I could not hear any words. Try again a little closer to the microphone.');
+          const response = await sessionsApi.transcribePronunciation(id, form);
+          const spoken = response.data.transcript as string;
+          setTranscript(spoken || '');
+          if (!spoken) setPronunciationError('I could not hear any words. Try again a little closer to the microphone.');
         } catch (err) {
-          setPronunciationError(err instanceof Error ? err.message : 'We could not analyse that recording. Please try again.');
+          setPronunciationError((err as ApiErrorShape).message || 'We could not analyse that recording. Please try again.');
         } finally {
           setTranscribing(false);
         }
