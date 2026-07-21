@@ -27,7 +27,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         />
       )}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-surface p-5 transition-transform lg:static lg:translate-x-0 ${
+          className={`sidebar-kids fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-white/10 p-5 transition-transform lg:static lg:translate-x-0 ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -44,8 +44,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 onClick={onClose}
                 className={`rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                   active
-                    ? 'bg-brand-900 text-white'
-                    : 'text-brand-900 hover:bg-brand-400/10'
+                    ? 'bg-white/18 text-white shadow-lg'
+                    : 'text-blue-100 hover:bg-white/10'
                 }`}
               >
                 {item.label}
@@ -53,7 +53,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             );
           })}
         </nav>
-        <p className="px-1 text-xs text-muted">Learn. Listen. Grow.</p>
+        <p className="px-1 text-xs text-blue-200">Learn. Listen. Grow. ✦</p>
       </aside>
     </>
   );

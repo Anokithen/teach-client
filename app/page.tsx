@@ -33,7 +33,7 @@ export default function LandingPage() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="home-night min-h-screen">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <Logo />
         <nav className="flex items-center gap-3">
@@ -57,11 +57,11 @@ export default function LandingPage() {
       <main className="mx-auto max-w-6xl px-6">
         <section className="grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-24">
           <div>
-            <p className="chip mb-4">For parents & teachers</p>
-            <h1 className="text-4xl font-semibold leading-tight tracking-tight text-brand-900 sm:text-5xl">
+            <p className="mb-4 inline-flex items-center rounded-full bg-brand-400/20 px-3 py-1 text-xs font-semibold text-cyan-100 ring-1 ring-brand-400/50">✦ For parents & teachers</p>
+            <h1 className="text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
               A reading companion that sounds like home.
             </h1>
-            <p className="mt-5 max-w-lg text-base text-muted">
+            <p className="mt-5 max-w-lg text-base text-blue-100/85">
               TeachAlike turns every reading session into guided practice: track progress, generate
               encouraging feedback, and — when you want it — narrate in a parent&apos;s own cloned voice.
             </p>
@@ -69,29 +69,29 @@ export default function LandingPage() {
               <Link href="/register" className="btn-primary">
                 Create your account
               </Link>
-              <Link href="/login" className="btn-secondary">
+              <Link href="/login" className="btn-home-outline">
                 I already have an account
               </Link>
             </div>
-            <p className="mt-6 text-sm font-medium uppercase tracking-wide text-brand-400">
+            <p className="mt-6 text-sm font-medium uppercase tracking-wide text-cyan-200">
               Learn. Listen. Grow.
             </p>
           </div>
-          <div className="flex justify-center">
+          <div className="home-logo-frame flex justify-center">
             <Image
               src="/Teachalike_logo.png"
               alt="TeachAlike — a parent and child reading together"
               width={360}
               height={360}
               priority
-              className="w-full max-w-sm"
+              className="home-logo w-full max-w-sm"
             />
           </div>
         </section>
 
         <section className="grid gap-5 pb-20 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((f) => (
-            <div key={f.title} className="card p-5">
+            <div key={f.title} className="home-feature card p-5">
               <h3 className="mb-2 text-sm font-semibold text-brand-900">{f.title}</h3>
               <p className="text-sm text-muted">{f.body}</p>
             </div>
@@ -99,7 +99,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="border-t border-border py-8 text-center text-sm text-muted">
+      <footer className="border-t border-white/10 py-8 text-center text-sm text-blue-100/75">
         TeachAlike — Learn. Listen. Grow.
       </footer>
     </div>

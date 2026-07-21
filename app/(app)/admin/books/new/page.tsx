@@ -18,6 +18,23 @@ export default function NewBookPage() {
   const [error, setError] = useState<string | string[] | null>(null);
   const [createdBookId, setCreatedBookId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [storyIdea, setStoryIdea] = useState('a curious little sea turtle looking for a lost star');
+
+  async function generateStory() {
+    setError(null);
+    setGenerating(true);
+    try {
+      const response = await fetch('/api/ai/book-draft', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ageGroup: form.age_group, readingLevel: form.reading_level, idea: storyIdea }),
+      });
+      const draft = await response.json() as { title?: string; text_content?: string; message?: string };
+      if (!response.ok) throw new Error(draft.message || 'Could not make a story draft.');
+      setForm({ ...form, title: draft.title || form.title, text_content: draft.text_content || form.text_content });
+    } catch (err) { setError(err instanceof Error ? err.message : 'Could not make a story draft.'); }
+    finally { setGenerating(false); }
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -42,6 +59,14 @@ export default function NewBookPage() {
       <p className="mt-1 text-sm text-muted">Each new book automatically receives word puzzle, spelling, and quiz activities.</p>
       <Card className="mt-6">
         <form onSubmit={onSubmit} className="space-y-4">
+          <div className="rounded-2xl bg-brand-400/10 p-4">
+            <p className="text-sm font-semibold text-brand-900">✨ Story starter</p>
+            <p className="mt-1 text-xs text-muted">Make an original, age-appropriate draft with OpenAI, then review and edit it before publishing.</p>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <Input aria-label="Story idea" value={storyIdea} onChange={(e) => setStoryIdea(e.target.value)} />
+              <Button type="button" variant="secondary" loading={generating} onClick={generateStory} className="shrink-0">Make a story</Button>
+            </div>
+          </div>
           <Input label="Book title" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Select label="Age group" value={form.age_group} onChange={(e) => setForm({ ...form, age_group: e.target.value })}>

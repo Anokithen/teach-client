@@ -58,9 +58,19 @@ export interface ProgressEntry {
 
 export interface ReadingSession {
   id: number;
+  child_id: number;
+  book_id: number;
   started_at: string;
   is_complete: boolean;
   progress_log?: ProgressEntry[];
+}
+
+export interface PronunciationCheck {
+  correct: boolean;
+  accuracy: number;
+  points_awarded: number;
+  already_awarded: boolean;
+  message: string;
 }
 
 export type FeedbackType = 'praise' | 'correction' | 'tip';

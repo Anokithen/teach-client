@@ -3,7 +3,7 @@
 import { ReactNode, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { Spinner } from '@/components/ui/Spinner';
+import { LoadingSplash } from '@/components/ui/LoadingSplash';
 
 export function AuthGuard({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading, isAdmin } = useAuth();
@@ -22,11 +22,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   }, [isLoading, isAuthenticated, isAdmin, pathname, router]);
 
   if (isLoading || !isAuthenticated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-bg">
-        <Spinner size={32} />
-      </div>
-    );
+    return <LoadingSplash />;
   }
 
   return <>{children}</>;

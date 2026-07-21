@@ -1,8 +1,8 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { sessionsApi } from '@/lib/endpoints';
+import { booksApi, sessionsApi } from '@/lib/endpoints';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { Badge } from '@/components/ui/Badge';
@@ -11,7 +11,7 @@ import { Alert } from '@/components/ui/Alert';
 import { Input, Select } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { ApiErrorShape, FeedbackType, ReadingSession, SessionFeedback } from '@/lib/types';
+import { ApiErrorShape, Book, FeedbackType, PronunciationCheck, ReadingSession, SessionFeedback } from '@/lib/types';
 
 const FEEDBACK_TYPES: FeedbackType[] = ['praise', 'correction', 'tip'];
 
@@ -19,6 +19,7 @@ export default function ReadingSessionPage() {
   const { id } = useParams<{ id: string }>();
 
   const [session, setSession] = useState<ReadingSession | null>(null);
+  const [book, setBook] = useState<Book | null>(null);
   const [feedback, setFeedback] = useState<SessionFeedback[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,10 +35,30 @@ export default function ReadingSessionPage() {
   const [genError, setGenError] = useState<string | string[] | null>(null);
   const [generating, setGenerating] = useState(false);
 
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [sentenceIndex, setSentenceIndex] = useState(0);
+  const [transcript, setTranscript] = useState('');
+  const [listening, setListening] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [pronunciationResult, setPronunciationResult] = useState<PronunciationCheck | null>(null);
+  const [pronunciationError, setPronunciationError] = useState<string | null>(null);
+
+  const sentences = (book?.text_content || '')
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  useEffect(() => () => {
+    recorderRef.current?.stop();
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+  }, []);
 
   async function load() {
     try {
@@ -45,8 +66,11 @@ export default function ReadingSessionPage() {
         sessionsApi.get(id),
         sessionsApi.listFeedback(id),
       ]);
-      setSession(sessionRes.data.reading_session);
+      const loadedSession = sessionRes.data.reading_session as ReadingSession;
+      setSession(loadedSession);
       setFeedback(feedbackRes.data.feedback);
+      const bookRes = await booksApi.get(loadedSession.book_id);
+      setBook(bookRes.data.book);
     } catch (err) {
       setError((err as ApiErrorShape).message);
     }
@@ -100,6 +124,69 @@ export default function ReadingSessionPage() {
     }
   }
 
+  async function startListening() {
+    setPronunciationError(null);
+    setPronunciationResult(null);
+    try {
+      if (!navigator.mediaDevices?.getUserMedia) throw new Error('Microphone recording is not supported in this browser. Please use Chrome, Edge, or Safari over HTTPS or localhost.');
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      streamRef.current = stream;
+      const chunks: BlobPart[] = [];
+      const preferredType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : '';
+      const recorder = preferredType ? new MediaRecorder(stream, { mimeType: preferredType }) : new MediaRecorder(stream);
+      recorderRef.current = recorder;
+      recorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop());
+        setListening(false);
+        const audio = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+        if (!audio.size) return;
+        setTranscribing(true);
+        try {
+          const form = new FormData();
+          form.append('audio', audio, 'my-reading.webm');
+          form.append('expected_text', sentences[sentenceIndex] || '');
+          const response = await fetch('/api/ai/transcribe', { method: 'POST', body: form });
+          const data = await response.json() as { transcript?: string; message?: string };
+          if (!response.ok) throw new Error(data.message || 'We could not understand that recording.');
+          setTranscript(data.transcript || '');
+          if (!data.transcript) setPronunciationError('I could not hear any words. Try again a little closer to the microphone.');
+        } catch (err) {
+          setPronunciationError(err instanceof Error ? err.message : 'We could not analyse that recording. Please try again.');
+        } finally {
+          setTranscribing(false);
+        }
+      };
+      setTranscript('');
+      setListening(true);
+      recorder.start();
+    } catch (err) {
+      setListening(false);
+      setPronunciationError(err instanceof Error && err.message ? err.message : 'Microphone access is blocked. Allow microphone access for this site and try again.');
+    }
+  }
+
+  function stopListening() { recorderRef.current?.state === 'recording' && recorderRef.current.stop(); }
+
+  async function checkPronunciation() {
+    if (!transcript.trim()) {
+      setPronunciationError('Read the sentence aloud first, then check your pronunciation.');
+      return;
+    }
+    setChecking(true);
+    setPronunciationError(null);
+    setPronunciationResult(null);
+    try {
+      const res = await sessionsApi.checkPronunciation(id, { sentence_index: sentenceIndex, transcript });
+      setPronunciationResult(res.data);
+      if (res.data.points_awarded) load();
+    } catch (err) {
+      setPronunciationError((err as ApiErrorShape).message);
+    } finally {
+      setChecking(false);
+    }
+  }
+
   if (error) return <Alert>{error}</Alert>;
   if (!session) {
     return (
@@ -131,6 +218,66 @@ export default function ReadingSessionPage() {
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <Card className="overflow-hidden">
+          <div className="relative mb-5 overflow-hidden rounded-2xl bg-brand-400/10 p-5">
+            <span className="reading-sparkle absolute right-6 top-4 text-2xl">✦</span><span className="reading-sparkle absolute bottom-4 right-16 text-lg">●</span><span className="reading-sparkle absolute left-5 top-6 text-lg">✦</span>
+            <h2 className="relative text-lg font-semibold text-brand-900">Read aloud for points</h2>
+            <p className="relative mt-1 text-sm text-muted">Press the friendly microphone, read with confidence, then see how you did.</p>
+          </div>
+          {sentences.length === 0 ? (
+            <EmptyState title="This book has no text to read aloud yet" />
+          ) : (
+            <div className="space-y-4">
+              <Select
+                label="Sentence"
+                value={String(sentenceIndex)}
+                onChange={(e) => {
+                  setSentenceIndex(Number(e.target.value));
+                  setTranscript('');
+                  setPronunciationResult(null);
+                }}
+                disabled={session.is_complete}
+              >
+                {sentences.map((_, index) => (
+                  <option key={index} value={index}>Sentence {index + 1}</option>
+                ))}
+              </Select>
+              <p className="rounded-xl border border-brand-400/30 bg-brand-400/10 p-4 text-base leading-relaxed text-brand-900">
+                {sentences[sentenceIndex]}
+              </p>
+              <div className="flex flex-col items-center gap-3 py-2 text-center">
+                <button type="button" aria-label={listening ? 'Stop recording' : 'Start recording'} onClick={listening ? stopListening : startListening} disabled={session.is_complete || transcribing} className={`mic-orb ${listening ? 'is-listening' : ''} disabled:opacity-50`}>
+                  <span className="text-3xl" aria-hidden="true">{listening ? '◼' : '🎙'}</span>
+                </button>
+                <p className="text-sm font-medium text-brand-900">{listening ? 'Listening… tap to finish' : transcribing ? 'Listening back to your words…' : 'Tap the microphone to read'}</p>
+                <p className="text-xs text-muted">Correct readings earn 10 leaderboard points, once per sentence.</p>
+              </div>
+              <div className="flex flex-wrap justify-center gap-3">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={checkPronunciation}
+                  loading={checking}
+                  disabled={session.is_complete || transcribing || !transcript.trim()}
+                >
+                  Check pronunciation
+                </Button>
+              </div>
+              {transcript && (
+                <p className="rounded-lg bg-surface px-3 py-2 text-sm text-brand-900">
+                  <span className="font-medium">I heard:</span> {transcript}
+                </p>
+              )}
+              {pronunciationError && <Alert>{pronunciationError}</Alert>}
+              {pronunciationResult && (
+                <Alert>
+                  {pronunciationResult.message} Match: {pronunciationResult.accuracy}%.
+                </Alert>
+              )}
+            </div>
+          )}
+        </Card>
+
         <Card>
           <h2 className="mb-4 text-sm font-semibold text-brand-900">Progress log</h2>
           {(!session.progress_log || session.progress_log.length === 0) && (
