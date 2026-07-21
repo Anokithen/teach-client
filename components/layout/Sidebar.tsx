@@ -8,10 +8,11 @@ import { useAuth } from '@/lib/auth-context';
 
 interface SidebarProps {
   open: boolean;
+  collapsed: boolean;
   onClose: () => void;
 }
 
-export function Sidebar({ open, onClose }: SidebarProps) {
+export function Sidebar({ open, collapsed, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { isAdmin } = useAuth();
   const items = getNavItems({ isAdmin });
@@ -27,7 +28,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         />
       )}
       <aside
-          className={`sidebar-kids fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-white/10 p-5 transition-transform lg:static lg:translate-x-0 ${
+          className={`sidebar-kids fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-white/10 p-5 transition-all lg:static lg:translate-x-0 ${collapsed ? 'lg:w-0 lg:overflow-hidden lg:border-r-0 lg:p-0' : 'lg:w-64'} ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -42,18 +43,21 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
-                className={`rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                title={collapsed ? item.label : undefined}
+                aria-label={collapsed ? item.label : undefined}
+                className={`rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${collapsed ? 'lg:flex lg:justify-center' : ''} ${
                   active
                     ? 'bg-white/18 text-white shadow-lg'
                     : 'text-blue-100 hover:bg-white/10'
                 }`}
               >
-                {item.label}
+                {collapsed && <span className="hidden lg:inline" aria-hidden="true">{item.label.slice(0, 1)}</span>}
+                <span className={collapsed ? 'lg:hidden' : ''}>{item.label}</span>
               </Link>
             );
           })}
         </nav>
-        <p className="px-1 text-xs text-blue-200">Learn. Listen. Grow. ✦</p>
+        <p className={`px-1 text-xs text-blue-200 ${collapsed ? 'lg:hidden' : ''}`}>Learn. Listen. Grow. ✦</p>
       </aside>
     </>
   );

@@ -21,10 +21,11 @@ export const accountApi = {
 export const childrenApi = {
   list: () => api.get('/api/children'),
   get: (id: number | string) => api.get(`/api/children/${id}`),
-  create: (payload: { name: string; age: number; reading_level: string; parent_id?: number }) =>
+  create: (payload: { name: string; age: number; gender: string; parent_id?: number; child_pin?: string }) =>
     api.post('/api/children', payload),
-  update: (id: number | string, payload: Partial<{ name: string; age: number; reading_level: string }>) =>
+  update: (id: number | string, payload: Partial<{ name: string; age: number; child_pin: string }>) =>
     api.patch(`/api/children/${id}`, payload),
+  verifyPin: (id: number | string, pin: string) => api.post(`/api/children/${id}/verify-pin`, { pin }),
   remove: (id: number | string) => api.delete(`/api/children/${id}`),
   sessions: (id: number | string) => api.get(`/api/children/${id}/reading-sessions`),
   gameResults: (id: number | string) => api.get(`/api/children/${id}/game-results`),
@@ -58,8 +59,6 @@ export const sessionsApi = {
     api.post(`/api/reading-sessions/${id}/pronunciation-check`, payload),
   transcribePronunciation: (id: number | string, audio: FormData) =>
     api.post(`/api/reading-sessions/${id}/pronunciation-transcript`, audio, { headers: { 'Content-Type': 'multipart/form-data' } }),
-  generateFeedback: (id: number | string, payload: Record<string, unknown> = {}) =>
-    api.post(`/api/reading-sessions/${id}/feedback`, payload),
   listFeedback: (id: number | string) => api.get(`/api/reading-sessions/${id}/feedback`),
 };
 
@@ -109,5 +108,9 @@ export const adminApi = {
     reading_level: 'beginner' | 'intermediate' | 'advanced';
     text_content?: string;
     content_url?: string;
+    cover_image_url?: string;
+    video_url?: string;
   }) => api.post('/api/admin/books', payload),
+  uploadBookMedia: (media: FormData) =>
+    api.post('/api/admin/book-media', media, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };

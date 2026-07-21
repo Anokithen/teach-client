@@ -3,6 +3,7 @@
 export type Role = 'parent' | 'teacher' | 'admin';
 
 export type ReadingLevel = 'beginner' | 'intermediate' | 'advanced';
+export type ChildGender = 'male' | 'female' | 'other' | 'prefer_not_to_say';
 
 export interface Account {
   id: number;
@@ -23,8 +24,11 @@ export interface Child {
   id: number;
   name: string;
   age: number;
+  gender: ChildGender;
   reading_level: ReadingLevel;
+  content_url?: string;
   parent_id?: number;
+  has_pin?: boolean;
   stats?: ChildStats;
 }
 
@@ -34,6 +38,8 @@ export interface Book {
   age_group: string;
   reading_level: ReadingLevel;
   text_content?: string;
+  cover_image_url?: string;
+  video_url?: string;
 }
 
 export interface MiniGame {

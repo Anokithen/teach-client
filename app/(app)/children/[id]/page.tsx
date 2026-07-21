@@ -9,17 +9,15 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
-import { Input, Select } from '@/components/ui/Input';
+import { Input } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { ApiErrorShape, Child, GameResult, LeaderboardEntry, ReadingLevel, ReadingSession } from '@/lib/types';
-
-const READING_LEVELS: ReadingLevel[] = ['beginner', 'intermediate', 'advanced'];
+import { ApiErrorShape, Child, GameResult, LeaderboardEntry, ReadingSession } from '@/lib/types';
 
 interface EditForm {
   name: string;
   age: number | string;
-  reading_level: ReadingLevel;
+  child_pin: string;
 }
 
 export default function ChildDetailPage() {
@@ -38,11 +36,35 @@ export default function ChildDetailPage() {
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [profileName, setProfileName] = useState('');
+  const [requiresPin, setRequiresPin] = useState(false);
+  const [pin, setPin] = useState('');
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [unlocking, setUnlocking] = useState(false);
 
   useEffect(() => {
-    load();
+    prepareProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  async function prepareProfile() {
+    try {
+      const res = await childrenApi.list();
+      const summary = res.data.children.find((item: Child) => String(item.id) === id);
+      if (!summary) {
+        setError('Child not found.');
+        return;
+      }
+      setProfileName(summary.name);
+      if (summary.has_pin) {
+        setRequiresPin(true);
+        return;
+      }
+      load();
+    } catch (err) {
+      setError((err as ApiErrorShape).message);
+    }
+  }
 
   async function load() {
     try {
@@ -55,7 +77,7 @@ export default function ChildDetailPage() {
       setForm({
         name: childRes.data.child.name,
         age: childRes.data.child.age,
-        reading_level: childRes.data.child.reading_level,
+        child_pin: '',
       });
       setSessions(sessionsRes.data.reading_sessions);
       setGameResults(gameResultsRes.data.game_results);
@@ -77,11 +99,12 @@ export default function ChildDetailPage() {
     setSaveError(null);
     setSaving(true);
     try {
-      const res = await childrenApi.update(id, {
+      const payload: { name: string; age: number; child_pin?: string } = {
         name: form.name,
         age: Number(form.age),
-        reading_level: form.reading_level,
-      });
+      };
+      if (form.child_pin) payload.child_pin = form.child_pin;
+      const res = await childrenApi.update(id, payload);
       setChild(res.data.child);
       setEditing(false);
     } catch (err) {
@@ -89,6 +112,25 @@ export default function ChildDetailPage() {
       setSaveError(apiErr.fields?.length ? apiErr.fields : apiErr.message);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function unlockProfile(e: FormEvent) {
+    e.preventDefault();
+    setPinError(null);
+    if (!/^\d{6}$/.test(pin)) {
+      setPinError('Enter the six-digit profile PIN.');
+      return;
+    }
+    setUnlocking(true);
+    try {
+      await childrenApi.verifyPin(id, pin);
+      setRequiresPin(false);
+      load();
+    } catch (err) {
+      setPinError((err as ApiErrorShape).message);
+    } finally {
+      setUnlocking(false);
     }
   }
 
@@ -105,6 +147,19 @@ export default function ChildDetailPage() {
   }
 
   if (error) return <Alert>{error}</Alert>;
+  if (requiresPin) {
+    return <div className="mx-auto max-w-md pt-10">
+      <Card>
+        <h1 className="text-center text-2xl font-semibold text-brand-900">{profileName}&apos;s profile</h1>
+        <p className="mt-2 text-center text-sm text-muted">Enter the six-digit PIN to open this profile.</p>
+        <form className="mt-6 space-y-4" onSubmit={unlockProfile}>
+          <Input label="Profile PIN" type="password" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))} />
+          <Alert>{pinError}</Alert>
+          <Button type="submit" className="w-full" loading={unlocking}>Open profile</Button>
+        </form>
+      </Card>
+    </div>;
+  }
   if (!child || !form) {
     return (
       <div className="flex justify-center py-16">
@@ -153,17 +208,21 @@ export default function ChildDetailPage() {
               value={form.age}
               onChange={(e) => setForm({ ...form, age: e.target.value })}
             />
-            <Select
-              label="Reading level"
-              value={form.reading_level}
-              onChange={(e) => setForm({ ...form, reading_level: e.target.value as ReadingLevel })}
-            >
-              {READING_LEVELS.map((l) => (
-                <option key={l} value={l}>
-                  {l}
-                </option>
-              ))}
-            </Select>
+            <div>
+              <p className="label">Reading level</p>
+              <p className="input cursor-not-allowed bg-brand-50 capitalize text-muted">{child.reading_level}</p>
+              <p className="mt-1 text-xs text-muted">This changes automatically as points are earned.</p>
+            </div>
+            <Input
+              label="New six-digit profile PIN"
+              type="password"
+              inputMode="numeric"
+              minLength={6}
+              maxLength={6}
+              value={form.child_pin}
+              onChange={(e) => setForm({ ...form, child_pin: e.target.value.replace(/\D/g, '').slice(0, 6) })}
+              placeholder={child.has_pin ? 'Leave blank to keep current PIN' : 'Optional'}
+            />
             <div className="sm:col-span-3">
               <Alert>{saveError}</Alert>
             </div>

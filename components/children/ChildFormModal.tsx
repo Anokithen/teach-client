@@ -7,9 +7,14 @@ import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { useAuth } from '@/lib/auth-context';
 import { childrenApi } from '@/lib/endpoints';
-import { ApiErrorShape, Child, ReadingLevel } from '@/lib/types';
+import { ApiErrorShape, Child, ChildGender } from '@/lib/types';
 
-const READING_LEVELS: ReadingLevel[] = ['beginner', 'intermediate', 'advanced'];
+const GENDER_OPTIONS: { value: ChildGender; label: string }[] = [
+  { value: 'female', label: 'Girl' },
+  { value: 'male', label: 'Boy' },
+  { value: 'other', label: 'Other' },
+  { value: 'prefer_not_to_say', label: 'Prefer not to say' },
+];
 
 interface ChildFormModalProps {
   open: boolean;
@@ -20,18 +25,19 @@ interface ChildFormModalProps {
 interface ChildForm {
   name: string;
   age: string;
-  reading_level: ReadingLevel;
+  gender: ChildGender;
   parent_id: string;
+  child_pin: string;
 }
 
 export function ChildFormModal({ open, onClose, onCreated }: ChildFormModalProps) {
   const { isTeacher } = useAuth();
-  const [form, setForm] = useState<ChildForm>({ name: '', age: '', reading_level: 'beginner', parent_id: '' });
+  const [form, setForm] = useState<ChildForm>({ name: '', age: '', gender: 'prefer_not_to_say', parent_id: '', child_pin: '' });
   const [error, setError] = useState<string | string[] | null>(null);
   const [loading, setLoading] = useState(false);
 
   const close = () => {
-    setForm({ name: '', age: '', reading_level: 'beginner', parent_id: '' });
+    setForm({ name: '', age: '', gender: 'prefer_not_to_say', parent_id: '', child_pin: '' });
     setError(null);
     onClose();
   };
@@ -41,12 +47,13 @@ export function ChildFormModal({ open, onClose, onCreated }: ChildFormModalProps
     setError(null);
     setLoading(true);
     try {
-      const payload: { name: string; age: number; reading_level: ReadingLevel; parent_id?: number } = {
+      const payload: { name: string; age: number; gender: ChildGender; parent_id?: number; child_pin?: string } = {
         name: form.name,
         age: Number(form.age),
-        reading_level: form.reading_level,
+        gender: form.gender,
       };
       if (isTeacher) payload.parent_id = Number(form.parent_id);
+      if (form.child_pin) payload.child_pin = form.child_pin;
       const res = await childrenApi.create(payload);
       onCreated?.(res.data.child);
       close();
@@ -67,6 +74,9 @@ export function ChildFormModal({ open, onClose, onCreated }: ChildFormModalProps
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
+        <Select label="Gender" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value as ChildGender })}>
+          {GENDER_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+        </Select>
         <Input
           label="Age"
           type="number"
@@ -76,17 +86,18 @@ export function ChildFormModal({ open, onClose, onCreated }: ChildFormModalProps
           value={form.age}
           onChange={(e) => setForm({ ...form, age: e.target.value })}
         />
-        <Select
-          label="Reading level"
-          value={form.reading_level}
-          onChange={(e) => setForm({ ...form, reading_level: e.target.value as ReadingLevel })}
-        >
-          {READING_LEVELS.map((l) => (
-            <option key={l} value={l} className="capitalize">
-              {l}
-            </option>
-          ))}
-        </Select>
+        <p className="-mt-2 text-xs text-muted">New children start at beginner level and progress automatically as they earn points.</p>
+        {!isTeacher && <Input
+          label="Child profile PIN (optional)"
+          type="password"
+          inputMode="numeric"
+          pattern="[0-9]{6}"
+          minLength={6}
+          maxLength={6}
+          value={form.child_pin}
+          onChange={(e) => setForm({ ...form, child_pin: e.target.value.replace(/\D/g, '').slice(0, 6) })}
+        />}
+        {!isTeacher && <p className="-mt-2 text-xs text-muted">Use exactly six digits. The child will enter it before opening their profile.</p>}
         {isTeacher && (
           <Input
             label="Parent account ID"

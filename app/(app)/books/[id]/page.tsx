@@ -11,7 +11,14 @@ import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { Select } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { ChildPinModal } from '@/components/children/ChildPinModal';
 import { ApiErrorShape, Book, Child, MiniGame, VoiceProfile } from '@/lib/types';
+
+const GAME_DETAILS: Record<string, { icon: string; goal: string; description: string }> = {
+  word_puzzle: { icon: '🧩', goal: 'Word builder', description: 'Put mixed-up letters in the right order to build book words.' },
+  spelling: { icon: '✏️', goal: 'Spelling practice', description: 'Type important words from the story carefully and correctly.' },
+  quiz: { icon: '🌟', goal: 'Story word quiz', description: 'Choose words you remember from the book to check your understanding.' },
+};
 
 export default function BookDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -24,6 +31,7 @@ export default function BookDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [childId, setChildId] = useState('');
+  const [pendingChild, setPendingChild] = useState<Child | null>(null);
   const [voiceProfileId, setVoiceProfileId] = useState('');
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | string[] | null>(null);
@@ -39,7 +47,6 @@ export default function BookDetailPage() {
         setBook(bookRes.data.book);
         setMiniGames(gamesRes.data.mini_games);
         setChildren(childrenRes.data.children);
-        if (childrenRes.data.children.length === 1) setChildId(String(childrenRes.data.children[0].id));
       } catch (err) {
         setError((err as ApiErrorShape).message);
       }
@@ -77,6 +84,14 @@ export default function BookDetailPage() {
     }
   }
 
+  function selectChild(value: string) {
+    if (!value) {
+      setChildId('');
+      return;
+    }
+    setPendingChild(children?.find((child) => String(child.id) === value) || null);
+  }
+
   if (error) return <Alert>{error}</Alert>;
   if (!book) {
     return (
@@ -100,6 +115,11 @@ export default function BookDetailPage() {
             <Badge tone="neutral">{book.reading_level}</Badge>
           </div>
         </div>
+        {book.cover_image_url && (
+          // External admin-provided image URLs cannot be allowlisted at build time for next/image.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={book.cover_image_url} alt={`Cover for ${book.title}`} className="h-36 w-28 rounded-2xl object-cover shadow-card" />
+        )}
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
@@ -108,12 +128,18 @@ export default function BookDetailPage() {
           <p className="whitespace-pre-line text-sm leading-relaxed text-brand-900/90">
             {book.text_content || 'No preview text available for this book.'}
           </p>
+          {book.video_url && (
+            <div className="mt-5 overflow-hidden rounded-2xl border border-brand-400/20 bg-brand-400/5 p-3">
+              <p className="mb-2 text-sm font-semibold text-brand-900">Watch the story</p>
+              <video controls preload="metadata" src={book.video_url} className="w-full rounded-xl" />
+            </div>
+          )}
         </Card>
 
         <Card>
           <h2 className="mb-4 text-sm font-semibold text-brand-900">Start a reading session</h2>
           <form onSubmit={onStartSession} className="space-y-4">
-            <Select label="Child" value={childId} onChange={(e) => setChildId(e.target.value)}>
+            <Select label="Child" value={childId} onChange={(e) => selectChild(e.target.value)}>
               <option value="">Choose a child</option>
               {children?.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -154,19 +180,18 @@ export default function BookDetailPage() {
               <Link
                 key={g.id}
                 href={`/mini-games/${g.id}`}
-                className="card block p-5 transition-shadow hover:shadow-md"
+                className="sparkle-book-card card block p-5 transition-all hover:-translate-y-1 hover:shadow-md"
               >
-                <h3 className="mb-2 text-sm font-semibold capitalize text-brand-900">
-                  {g.game_type?.replace(/_/g, ' ')}
-                </h3>
-                <Badge tone="neutral" className="capitalize">
-                  {g.difficulty}
-                </Badge>
+                <span className="mb-3 block text-2xl" aria-hidden="true">{GAME_DETAILS[g.game_type]?.icon || '🎮'}</span>
+                <h3 className="text-base font-semibold text-brand-900">{GAME_DETAILS[g.game_type]?.goal || g.game_type?.replace(/_/g, ' ')}</h3>
+                <p className="mt-1 min-h-10 text-sm text-muted">{GAME_DETAILS[g.game_type]?.description || 'Complete the activity to practise this book.'}</p>
+                <div className="mt-3 flex items-center justify-between"><Badge tone="neutral" className="capitalize">{g.difficulty}</Badge><span className="text-xs font-semibold text-brand-600">Play →</span></div>
               </Link>
             ))}
           </div>
         )}
       </div>
+      <ChildPinModal child={pendingChild} onClose={() => setPendingChild(null)} onVerified={(child) => setChildId(String(child.id))} />
     </div>
   );
 }

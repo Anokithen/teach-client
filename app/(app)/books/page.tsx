@@ -91,8 +91,13 @@ export default function BooksPage() {
               <Link
                 key={book.id}
                 href={`/books/${book.id}`}
-                className="card block p-5 transition-shadow hover:shadow-md"
+                className="sparkle-book-card card relative block overflow-hidden p-5 transition-shadow hover:shadow-md"
               >
+                {book.cover_image_url && (
+                  // External admin-provided image URLs cannot be allowlisted at build time for next/image.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={book.cover_image_url} alt="" className="mb-4 h-32 w-full rounded-xl object-cover" />
+                )}
                 <h3 className="mb-2 text-base font-semibold text-brand-900">{book.title}</h3>
                 <div className="flex flex-wrap gap-2">
                   <Badge tone="brand">{book.age_group}</Badge>

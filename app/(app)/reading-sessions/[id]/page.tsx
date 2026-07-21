@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { booksApi, sessionsApi } from '@/lib/endpoints';
 import { Card } from '@/components/ui/Card';
@@ -8,12 +8,10 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
-import { Input, Select } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { ApiErrorShape, Book, FeedbackType, PronunciationCheck, ReadingSession, SessionFeedback } from '@/lib/types';
-
-const FEEDBACK_TYPES: FeedbackType[] = ['praise', 'correction', 'tip'];
+import { ApiErrorShape, Book, PronunciationCheck, ReadingSession, SessionFeedback } from '@/lib/types';
 
 export default function ReadingSessionPage() {
   const { id } = useParams<{ id: string }>();
@@ -23,17 +21,8 @@ export default function ReadingSessionPage() {
   const [feedback, setFeedback] = useState<SessionFeedback[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [page, setPage] = useState('');
-  const [accuracy, setAccuracy] = useState('');
-  const [logError, setLogError] = useState<string | string[] | null>(null);
-  const [logging, setLogging] = useState(false);
-
   const [confirmComplete, setConfirmComplete] = useState(false);
   const [completing, setCompleting] = useState(false);
-
-  const [feedbackType, setFeedbackType] = useState<FeedbackType>('praise');
-  const [genError, setGenError] = useState<string | string[] | null>(null);
-  const [generating, setGenerating] = useState(false);
 
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -76,26 +65,6 @@ export default function ReadingSessionPage() {
     }
   }
 
-  async function onLogProgress(e: FormEvent) {
-    e.preventDefault();
-    setLogError(null);
-    setLogging(true);
-    try {
-      const entry: { page?: number; accuracy?: number } = {};
-      if (page) entry.page = Number(page);
-      if (accuracy) entry.accuracy = Number(accuracy);
-      const res = await sessionsApi.update(id, { progress_entry: entry });
-      setSession(res.data.reading_session);
-      setPage('');
-      setAccuracy('');
-    } catch (err) {
-      const apiErr = err as ApiErrorShape;
-      setLogError(apiErr.fields?.length ? apiErr.fields : apiErr.message);
-    } finally {
-      setLogging(false);
-    }
-  }
-
   async function onMarkComplete() {
     setCompleting(true);
     try {
@@ -106,21 +75,6 @@ export default function ReadingSessionPage() {
       setError((err as ApiErrorShape).message);
     } finally {
       setCompleting(false);
-    }
-  }
-
-  async function onGenerateFeedback(e: FormEvent) {
-    e.preventDefault();
-    setGenError(null);
-    setGenerating(true);
-    try {
-      const res = await sessionsApi.generateFeedback(id, { feedback_type: feedbackType });
-      setFeedback((prev) => [...(prev || []), res.data.feedback]);
-    } catch (err) {
-      const apiErr = err as ApiErrorShape;
-      setGenError(apiErr.fields?.length ? apiErr.fields : apiErr.message);
-    } finally {
-      setGenerating(false);
     }
   }
 
@@ -145,6 +99,7 @@ export default function ReadingSessionPage() {
         try {
           const form = new FormData();
           form.append('audio', audio, 'my-reading.webm');
+          form.append('sentence_index', String(sentenceIndex));
           const response = await sessionsApi.transcribePronunciation(id, form);
           const spoken = response.data.transcript as string;
           setTranscript(spoken || '');
@@ -177,7 +132,7 @@ export default function ReadingSessionPage() {
     try {
       const res = await sessionsApi.checkPronunciation(id, { sentence_index: sentenceIndex, transcript });
       setPronunciationResult(res.data);
-      if (res.data.points_awarded) load();
+      load();
     } catch (err) {
       setPronunciationError((err as ApiErrorShape).message);
     } finally {
@@ -218,7 +173,6 @@ export default function ReadingSessionPage() {
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card className="overflow-hidden">
           <div className="relative mb-5 overflow-hidden rounded-2xl bg-brand-400/10 p-5">
-            <span className="reading-sparkle absolute right-6 top-4 text-2xl">✦</span><span className="reading-sparkle absolute bottom-4 right-16 text-lg">●</span><span className="reading-sparkle absolute left-5 top-6 text-lg">✦</span>
             <h2 className="relative text-lg font-semibold text-brand-900">Read aloud for points</h2>
             <p className="relative mt-1 text-sm text-muted">Press the friendly microphone, read with confidence, then see how you did.</p>
           </div>
@@ -277,14 +231,24 @@ export default function ReadingSessionPage() {
         </Card>
 
         <Card>
-          <h2 className="mb-4 text-sm font-semibold text-brand-900">Progress log</h2>
+          <h2 className="mb-1 text-sm font-semibold text-brand-900">Progress log</h2>
+          <p className="mb-4 text-sm text-muted">Your reading scores are saved here automatically after each check.</p>
           {(!session.progress_log || session.progress_log.length === 0) && (
-            <EmptyState title="No progress logged yet" description="Add a page and accuracy entry below." />
+            <EmptyState title="No reading scores yet" description="Read a sentence aloud to create your first progress entry." />
           )}
           {session.progress_log && session.progress_log.length > 0 && (
             <ol className="mb-5 space-y-2 border-l-2 border-border pl-4">
               {session.progress_log.map((entry, i) => (
                 <li key={i} className="text-sm text-brand-900">
+                  {entry.type === 'pronunciation_check' && (
+                    <>
+                      <span className="font-medium">Sentence {Number(entry.sentence_index) + 1}</span>
+                      <span className="ml-2 text-muted">{entry.accuracy}% accuracy</span>
+                      {Number(entry.awarded_points) > 0 && <span className="ml-2 font-medium text-success">+{String(entry.awarded_points)} points</span>}
+                    </>
+                  )}
+                  {entry.type !== 'pronunciation_check' && (
+                    <>
                   {entry.page !== undefined && <span className="font-medium">Page {entry.page}</span>}
                   {entry.accuracy !== undefined && (
                     <span className="ml-2 text-muted">{entry.accuracy}% accuracy</span>
@@ -292,58 +256,17 @@ export default function ReadingSessionPage() {
                   {entry.page === undefined && entry.accuracy === undefined && (
                     <span className="text-muted">{JSON.stringify(entry)}</span>
                   )}
+                    </>
+                  )}
                 </li>
               ))}
             </ol>
           )}
-
-          {!session.is_complete && (
-            <form onSubmit={onLogProgress} className="grid grid-cols-2 gap-3">
-              <Input
-                label="Page"
-                type="number"
-                min={0}
-                value={page}
-                onChange={(e) => setPage(e.target.value)}
-              />
-              <Input
-                label="Accuracy %"
-                type="number"
-                min={0}
-                max={100}
-                value={accuracy}
-                onChange={(e) => setAccuracy(e.target.value)}
-              />
-              <div className="col-span-2">
-                <Alert>{logError}</Alert>
-              </div>
-              <div className="col-span-2">
-                <Button type="submit" loading={logging} variant="secondary" className="w-full">
-                  Log progress
-                </Button>
-              </div>
-            </form>
-          )}
         </Card>
 
         <Card>
-          <h2 className="mb-4 text-sm font-semibold text-brand-900">Feedback</h2>
-
-          <form onSubmit={onGenerateFeedback} className="mb-5 flex items-end gap-3">
-            <div className="flex-1">
-              <Select label="Type" value={feedbackType} onChange={(e) => setFeedbackType(e.target.value as FeedbackType)}>
-                {FEEDBACK_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <Button type="submit" loading={generating}>
-              Generate feedback
-            </Button>
-          </form>
-          <Alert>{genError}</Alert>
+          <h2 className="mb-1 text-sm font-semibold text-brand-900">Your reading feedback</h2>
+          <p className="mb-4 text-sm text-muted">Feedback appears automatically after each pronunciation score.</p>
 
           {feedback && feedback.length === 0 && (
             <p className="text-sm text-muted">No feedback generated yet.</p>

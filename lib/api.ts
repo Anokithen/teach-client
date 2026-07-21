@@ -33,6 +33,7 @@ export function clearTokens(): void {
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
+  timeout: 60000,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -59,6 +60,9 @@ export function normalizeError(error: AxiosError<BackendErrorData> | unknown): A
   }
   if (data?.error) {
     return { message: data.error, fields: [data.error], status: err.response?.status };
+  }
+  if (err?.code === 'ECONNABORTED') {
+    return { message: 'The request took too long. Please check your connection and try again.', fields: [], status: err?.response?.status };
   }
   return { message: 'Something went wrong. Please try again.', fields: [], status: err?.response?.status };
 }

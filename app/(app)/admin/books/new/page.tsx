@@ -13,13 +13,24 @@ const AGE_GROUPS = ['3-5', '6-8', '9-11', '12+'];
 
 export default function NewBookPage() {
   const [form, setForm] = useState({
-    title: '', age_group: '3-5', reading_level: 'beginner' as ReadingLevel, text_content: '', content_url: '',
+    title: '', age_group: '3-5', reading_level: 'beginner' as ReadingLevel, text_content: '', content_url: '', cover_image_url: '', video_url: '',
   });
   const [error, setError] = useState<string | string[] | null>(null);
   const [createdBookId, setCreatedBookId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [storyIdea, setStoryIdea] = useState('a curious little sea turtle looking for a lost star');
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [mediaInputKey, setMediaInputKey] = useState(0);
+
+  async function uploadMedia(file: File, mediaType: 'image' | 'video') {
+    const media = new FormData();
+    media.append('file', file);
+    media.append('media_type', mediaType);
+    const response = await adminApi.uploadBookMedia(media);
+    return response.data.url as string;
+  }
 
   async function generateStory() {
     setError(null);
@@ -42,9 +53,14 @@ export default function NewBookPage() {
     setCreatedBookId(null);
     setLoading(true);
     try {
-      const res = await adminApi.createBook(form);
+      const cover_image_url = coverFile ? await uploadMedia(coverFile, 'image') : form.cover_image_url;
+      const video_url = videoFile ? await uploadMedia(videoFile, 'video') : form.video_url;
+      const res = await adminApi.createBook({ ...form, cover_image_url, video_url });
       setCreatedBookId(res.data.book.id);
-      setForm({ title: '', age_group: '3-5', reading_level: 'beginner', text_content: '', content_url: '' });
+      setForm({ title: '', age_group: '3-5', reading_level: 'beginner', text_content: '', content_url: '', cover_image_url: '', video_url: '' });
+      setCoverFile(null);
+      setVideoFile(null);
+      setMediaInputKey((value) => value + 1);
     } catch (err) {
       const apiErr = err as ApiErrorShape;
       setError(apiErr.fields?.length ? apiErr.fields : apiErr.message);
@@ -57,7 +73,7 @@ export default function NewBookPage() {
     <div className="max-w-2xl">
       <h1 className="text-2xl font-semibold text-brand-900">Add a book</h1>
       <p className="mt-1 text-sm text-muted">Each new book automatically receives word puzzle, spelling, and quiz activities.</p>
-      <Card className="mt-6">
+      <Card className="sparkle-book-card mt-6 overflow-hidden">
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="rounded-2xl bg-brand-400/10 p-4">
             <p className="text-sm font-semibold text-brand-900">✨ Story starter</p>
@@ -77,7 +93,17 @@ export default function NewBookPage() {
             </Select>
           </div>
           <Textarea label="Book text" required value={form.text_content} onChange={(e) => setForm({ ...form, text_content: e.target.value })} placeholder="Paste or write the story text used to build the games." />
-          <Input label="Content URL (optional)" type="url" value={form.content_url} onChange={(e) => setForm({ ...form, content_url: e.target.value })} />
+          <div className="rounded-2xl border border-brand-400/20 bg-brand-400/5 p-4">
+            <p className="text-sm font-semibold text-brand-900">Book media <span className="font-normal text-muted">(optional)</span></p>
+            <p className="mt-1 text-xs text-muted">Add public HTTPS links. These visuals never cover the book title or reading text.</p>
+            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+              <Input label="Cover image URL" type="url" placeholder="https://…/cover.jpg" value={form.cover_image_url} onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })} />
+              <Input label="Video URL" type="url" placeholder="https://…/story-video.mp4" value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })} />
+              <div><label className="label">Or upload a cover image</label><input key={`cover-${mediaInputKey}`} className="input" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} /></div>
+              <div><label className="label">Or upload a video</label><input key={`video-${mediaInputKey}`} className="input" type="file" accept="video/mp4,video/webm,video/quicktime" onChange={(e) => setVideoFile(e.target.files?.[0] || null)} /></div>
+            </div>
+          </div>
+          <Input label="Reading resource URL (optional)" type="url" value={form.content_url} onChange={(e) => setForm({ ...form, content_url: e.target.value })} />
           <Alert>{error}</Alert>
           {createdBookId && <Alert tone="success">Book and its three mini-games are ready. <Link className="font-medium underline" href={`/books/${createdBookId}`}>Open book</Link></Alert>}
           <Button type="submit" loading={loading} className="w-full">Create book and games</Button>
