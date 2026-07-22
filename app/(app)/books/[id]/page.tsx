@@ -1,9 +1,9 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { booksApi, childrenApi, voiceProfilesApi, sessionsApi } from '@/lib/endpoints';
+import { bookNarrationsApi, booksApi, childrenApi, voiceProfilesApi, sessionsApi } from '@/lib/endpoints';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { Badge } from '@/components/ui/Badge';
@@ -12,7 +12,7 @@ import { Alert } from '@/components/ui/Alert';
 import { Select } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ChildPinModal } from '@/components/children/ChildPinModal';
-import { ApiErrorShape, Book, Child, MiniGame, VoiceProfile } from '@/lib/types';
+import { ApiErrorShape, Book, BookNarration, Child, MiniGame, VoiceProfile } from '@/lib/types';
 
 const GAME_DETAILS: Record<string, { icon: string; goal: string; description: string }> = {
   word_puzzle: { icon: '🧩', goal: 'Word builder', description: 'Put mixed-up letters in the right order to build book words.' },
@@ -28,6 +28,7 @@ export default function BookDetailPage() {
   const [miniGames, setMiniGames] = useState<MiniGame[] | null>(null);
   const [children, setChildren] = useState<Child[] | null>(null);
   const [voiceProfiles, setVoiceProfiles] = useState<VoiceProfile[]>([]);
+  const [narrations, setNarrations] = useState<BookNarration[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const [childId, setChildId] = useState('');
@@ -35,18 +36,25 @@ export default function BookDetailPage() {
   const [voiceProfileId, setVoiceProfileId] = useState('');
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | string[] | null>(null);
+  const [narrationVoiceId, setNarrationVoiceId] = useState('');
+  const [creatingNarration, setCreatingNarration] = useState(false);
+  const [narrationError, setNarrationError] = useState<string | null>(null);
+  const [narrationAudioUrl, setNarrationAudioUrl] = useState<string | null>(null);
+  const narrationAudio = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
     async function load() {
       try {
-        const [bookRes, gamesRes, childrenRes] = await Promise.all([
+        const [bookRes, gamesRes, childrenRes, narrationsRes] = await Promise.all([
           booksApi.get(id),
           booksApi.miniGames(id),
           childrenApi.list(),
+          bookNarrationsApi.list(id),
         ]);
         setBook(bookRes.data.book);
         setMiniGames(gamesRes.data.mini_games);
         setChildren(childrenRes.data.children);
+        setNarrations(narrationsRes.data.book_narrations);
       } catch (err) {
         setError((err as ApiErrorShape).message);
       }
@@ -59,6 +67,62 @@ export default function BookDetailPage() {
     }
     load();
   }, [id]);
+
+  const selectedNarration = narrations.find((narration) => String(narration.voice_profile_id) === narrationVoiceId) || null;
+
+  useEffect(() => {
+    if (selectedNarration?.status !== 'processing') return;
+    const poll = async () => {
+      try {
+        const response = await bookNarrationsApi.status(selectedNarration.id);
+        setNarrations((previous) => previous.map((narration) => narration.id === selectedNarration.id ? response.data : narration));
+      } catch (err) {
+        setNarrationError((err as ApiErrorShape).message);
+      }
+    };
+    void poll();
+    const interval = window.setInterval(() => { void poll(); }, 5000);
+    return () => window.clearInterval(interval);
+  }, [selectedNarration?.id, selectedNarration?.status]);
+
+  useEffect(() => () => {
+    if (narrationAudioUrl) URL.revokeObjectURL(narrationAudioUrl);
+  }, [narrationAudioUrl]);
+
+  async function createNarration() {
+    if (!narrationVoiceId) {
+      setNarrationError('Choose a ready voice profile first.');
+      return;
+    }
+    setNarrationError(null);
+    setCreatingNarration(true);
+    try {
+      const response = await bookNarrationsApi.create(id, { voice_profile_id: Number(narrationVoiceId) });
+      const narration = response.data.book_narration as BookNarration;
+      setNarrations((previous) => {
+        const withoutCurrent = previous.filter((item) => item.id !== narration.id);
+        return [narration, ...withoutCurrent];
+      });
+    } catch (err) {
+      setNarrationError((err as ApiErrorShape).message);
+    } finally {
+      setCreatingNarration(false);
+    }
+  }
+
+  async function loadNarrationAudio() {
+    if (!selectedNarration) return;
+    narrationAudio.current?.pause();
+    if (narrationAudioUrl) URL.revokeObjectURL(narrationAudioUrl);
+    setNarrationAudioUrl(null);
+    setNarrationError(null);
+    try {
+      const response = await bookNarrationsApi.audio(selectedNarration.id);
+      setNarrationAudioUrl(URL.createObjectURL(response.data));
+    } catch (err) {
+      setNarrationError((err as ApiErrorShape).message);
+    }
+  }
 
   async function onStartSession(e: FormEvent) {
     e.preventDefault();
@@ -128,6 +192,32 @@ export default function BookDetailPage() {
           <p className="whitespace-pre-line text-sm leading-relaxed text-brand-900/90">
             {book.text_content || 'No preview text available for this book.'}
           </p>
+          <div className="mt-6 rounded-2xl border border-violet-300 bg-violet-50/60 p-4">
+            <h3 className="text-sm font-semibold text-brand-900">Listen in a familiar voice</h3>
+            <p className="mt-1 text-xs text-muted">Generate a private narration for this preview. It does not start or affect a reading session.</p>
+            {voiceProfiles.length === 0 ? (
+              <p className="mt-3 text-sm text-muted">Add a ready voice recording to use this option.</p>
+            ) : (
+              <div className="mt-3 space-y-3">
+                <Select label="Voice profile" value={narrationVoiceId} onChange={(event) => {
+                  setNarrationVoiceId(event.target.value);
+                  setNarrationError(null);
+                  if (narrationAudioUrl) {
+                    URL.revokeObjectURL(narrationAudioUrl);
+                    setNarrationAudioUrl(null);
+                  }
+                }}>
+                  <option value="">Choose a familiar voice</option>
+                  {voiceProfiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.label || `Voice profile #${profile.id}`}</option>)}
+                </Select>
+                {!selectedNarration && <Button type="button" onClick={createNarration} loading={creatingNarration} disabled={!narrationVoiceId}>Generate narration</Button>}
+                {selectedNarration?.status === 'processing' && <div className="flex items-center gap-2 text-sm text-brand-700"><Spinner size={16} /> Generating narration… This can take a few minutes.</div>}
+                {selectedNarration?.status === 'failed' && <div className="space-y-2"><Alert>{selectedNarration.error_message || 'Narration generation failed.'}</Alert><Button type="button" onClick={createNarration} loading={creatingNarration}>Retry narration</Button></div>}
+                {selectedNarration?.status === 'ready' && <div className="space-y-3"><Button type="button" variant="ghost" onClick={loadNarrationAudio}>Load narration player</Button>{narrationAudioUrl && <audio ref={narrationAudio} key={narrationAudioUrl} className="w-full" controls autoPlay preload="metadata" src={narrationAudioUrl}>Your browser cannot play this narration.</audio>}</div>}
+              </div>
+            )}
+            {narrationError && <div className="mt-3"><Alert>{narrationError}</Alert></div>}
+          </div>
           {book.video_url && (
             <div className="mt-5 overflow-hidden rounded-2xl border border-brand-400/20 bg-brand-400/5 p-3">
               <p className="mb-2 text-sm font-semibold text-brand-900">Watch the story</p>

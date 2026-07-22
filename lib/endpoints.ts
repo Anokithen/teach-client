@@ -73,6 +73,15 @@ export const voiceProfilesApi = {
   remove: (id: number | string) => api.delete(`/api/voice-profiles/${id}`),
 };
 
+// ---- Cached book narrations ----
+export const bookNarrationsApi = {
+  create: (bookId: number | string, payload: { voice_profile_id: number }) =>
+    api.post(`/api/books/${bookId}/narrations`, payload),
+  list: (bookId: number | string) => api.get(`/api/books/${bookId}/narrations`),
+  status: (id: number | string) => api.get(`/api/book-narrations/${id}/status`),
+  audio: (id: number | string) => api.get(`/api/book-narrations/${id}/audio`, { responseType: 'blob' }),
+};
+
 // ---- Leaderboard ----
 export const leaderboardApi = {
   list: (week: string = 'current') => api.get('/api/leaderboard', { params: { week } }),

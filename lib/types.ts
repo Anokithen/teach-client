@@ -100,6 +100,17 @@ export interface VoiceProfile {
   owner_name?: string;
 }
 
+export type BookNarrationStatus = 'processing' | 'ready' | 'failed';
+
+export interface BookNarration {
+  id: number;
+  book_id: number;
+  voice_profile_id: number;
+  status: BookNarrationStatus;
+  created_at: string;
+  error_message?: string | null;
+}
+
 export interface LeaderboardEntry {
   id: number;
   rank: number;
