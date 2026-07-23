@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { booksApi, sessionsApi } from '@/lib/endpoints';
+import { bookNarrationsApi, booksApi, sessionsApi, voiceProfilesApi } from '@/lib/endpoints';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { Badge } from '@/components/ui/Badge';
@@ -11,7 +11,7 @@ import { Alert } from '@/components/ui/Alert';
 import { Select } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { ApiErrorShape, Book, PronunciationCheck, ReadingSession, SessionFeedback } from '@/lib/types';
+import { ApiErrorShape, Book, BookNarration, PronunciationCheck, ReadingSession, SessionFeedback, VoiceProfile } from '@/lib/types';
 
 export default function ReadingSessionPage() {
   const { id } = useParams<{ id: string }>();
@@ -33,21 +33,58 @@ export default function ReadingSessionPage() {
   const [checking, setChecking] = useState(false);
   const [pronunciationResult, setPronunciationResult] = useState<PronunciationCheck | null>(null);
   const [pronunciationError, setPronunciationError] = useState<string | null>(null);
+  const [voiceProfiles, setVoiceProfiles] = useState<VoiceProfile[]>([]);
+  const [narrations, setNarrations] = useState<BookNarration[]>([]);
+  const [selectedVoiceProfileId, setSelectedVoiceProfileId] = useState('');
+  const [loadingNarration, setLoadingNarration] = useState(false);
+  const [narrationAudioUrl, setNarrationAudioUrl] = useState<string | null>(null);
+  const [narrationError, setNarrationError] = useState<string | null>(null);
+  const [imageIndex, setImageIndex] = useState(0);
+  const narrationAudio = useRef<HTMLAudioElement>(null);
 
   const sentences = (book?.text_content || '')
     .split(/(?<=[.!?])\s+|\n+/)
     .map((sentence) => sentence.trim())
     .filter(Boolean);
+  const storyImages = [book?.cover_image_url, ...(book?.image_urls || [])].filter(Boolean) as string[];
 
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  useEffect(() => setImageIndex(0), [id]);
+
   useEffect(() => () => {
     recorderRef.current?.stop();
     streamRef.current?.getTracks().forEach((track) => track.stop());
   }, []);
+
+  const selectedNarration = narrations.find(
+    (narration) => String(narration.voice_profile_id) === selectedVoiceProfileId,
+  ) || null;
+
+  useEffect(() => {
+    if (selectedNarration?.status !== 'processing') return;
+    const poll = async () => {
+      try {
+        const response = await bookNarrationsApi.status(selectedNarration.id);
+        setNarrations((previous) => previous.map((narration) => (
+          narration.id === selectedNarration.id ? response.data : narration
+        )));
+      } catch (err) {
+        setNarrationError((err as ApiErrorShape).message);
+      }
+    };
+    void poll();
+    const interval = window.setInterval(() => { void poll(); }, 5000);
+    return () => window.clearInterval(interval);
+  }, [selectedNarration?.id, selectedNarration?.status]);
+
+  useEffect(() => () => {
+    narrationAudio.current?.pause();
+    if (narrationAudioUrl) URL.revokeObjectURL(narrationAudioUrl);
+  }, [narrationAudioUrl]);
 
   async function load() {
     try {
@@ -60,8 +97,50 @@ export default function ReadingSessionPage() {
       setFeedback(feedbackRes.data.feedback);
       const bookRes = await booksApi.get(loadedSession.book_id);
       setBook(bookRes.data.book);
+      const [profileRes, narrationRes] = await Promise.all([
+        voiceProfilesApi.list(),
+        bookNarrationsApi.list(loadedSession.book_id),
+      ]);
+      const readyProfiles = profileRes.data.voice_profiles.filter((profile: VoiceProfile) => profile.status === 'ready');
+      setVoiceProfiles(readyProfiles);
+      setNarrations(narrationRes.data.book_narrations);
+      setSelectedVoiceProfileId(
+        String(loadedSession.voice_profile_id || readyProfiles[0]?.id || ''),
+      );
     } catch (err) {
       setError((err as ApiErrorShape).message);
+    }
+  }
+
+  async function listenToBook() {
+    if (!book || !selectedVoiceProfileId) {
+      setNarrationError('Choose a voice profile first.');
+      return;
+    }
+    setNarrationError(null);
+    setLoadingNarration(true);
+    narrationAudio.current?.pause();
+    if (narrationAudioUrl) URL.revokeObjectURL(narrationAudioUrl);
+    setNarrationAudioUrl(null);
+    try {
+      // The API returns the existing ready row for this exact book/profile
+      // pair, so this call only generates audio when that cache entry is new.
+      const response = await bookNarrationsApi.create(book.id, {
+        voice_profile_id: Number(selectedVoiceProfileId),
+      });
+      const narration = response.data.book_narration as BookNarration;
+      setNarrations((previous) => [
+        narration,
+        ...previous.filter((item) => item.id !== narration.id),
+      ]);
+      if (narration.status === 'ready') {
+        const audioResponse = await bookNarrationsApi.audio(narration.id);
+        setNarrationAudioUrl(URL.createObjectURL(audioResponse.data));
+      }
+    } catch (err) {
+      setNarrationError((err as ApiErrorShape).message);
+    } finally {
+      setLoadingNarration(false);
     }
   }
 
@@ -171,6 +250,78 @@ export default function ReadingSessionPage() {
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        {storyImages.length > 0 && (
+          <Card className="lg:col-span-2 overflow-hidden border-brand-400/20 bg-brand-400/5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div><h2 className="text-sm font-semibold text-brand-900">Story pictures</h2><p className="text-xs text-muted">Explore the illustrations while you read.</p></div>
+              <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-medium text-brand-700">Picture {imageIndex + 1} of {storyImages.length}</span>
+            </div>
+            <div className="relative mx-auto mt-3 max-w-3xl overflow-hidden rounded-3xl bg-white/70 p-2 shadow-card">
+              {/* External admin-provided image URLs cannot be allowlisted at build time for next/image. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img key={storyImages[imageIndex]} src={storyImages[imageIndex]} alt={`Story illustration ${imageIndex + 1}`} className="story-gallery-image h-56 w-full rounded-2xl object-cover sm:h-72" />
+              <span className="reading-sparkle absolute left-5 top-4 text-2xl" aria-hidden="true">🌟</span>
+              {storyImages.length > 1 && <>
+                <button type="button" aria-label="Previous story picture" onClick={() => setImageIndex((index) => (index - 1 + storyImages.length) % storyImages.length)} className="absolute left-5 top-1/2 rounded-full bg-white/90 px-3 py-2 text-brand-900 shadow transition hover:scale-110">‹</button>
+                <button type="button" aria-label="Next story picture" onClick={() => setImageIndex((index) => (index + 1) % storyImages.length)} className="absolute right-5 top-1/2 rounded-full bg-white/90 px-3 py-2 text-brand-900 shadow transition hover:scale-110">›</button>
+              </>}
+            </div>
+            {storyImages.length > 1 && <div className="mt-2 flex justify-center gap-1.5">{storyImages.map((image, index) => <button type="button" key={image} aria-label={`Show story picture ${index + 1}`} onClick={() => setImageIndex(index)} className={`h-2 rounded-full transition-all ${index === imageIndex ? 'w-6 bg-brand-600' : 'w-2 bg-brand-400/40'}`} />)}</div>}
+          </Card>
+        )}
+        <Card className="lg:col-span-2 border-violet-300 bg-violet-50/60">
+          <h2 className="mb-1 text-sm font-semibold text-brand-900">Listen in a familiar voice</h2>
+          <p className="mb-4 text-sm text-muted">
+            Choose a voice profile to hear this book. The same book and voice profile reuse the saved audio; another voice creates its own cached version.
+          </p>
+          {voiceProfiles.length === 0 ? (
+            <p className="text-sm text-muted">No ready voice profiles are available yet.</p>
+          ) : (
+            <div className="space-y-3">
+              <Select
+                label="Voice profile"
+                value={selectedVoiceProfileId}
+                onChange={(event) => {
+                  setSelectedVoiceProfileId(event.target.value);
+                  setNarrationError(null);
+                  if (narrationAudioUrl) URL.revokeObjectURL(narrationAudioUrl);
+                  setNarrationAudioUrl(null);
+                }}
+              >
+                <option value="">Choose a voice</option>
+                {voiceProfiles.map((profile) => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.label || `Voice profile #${profile.id}`}
+                  </option>
+                ))}
+              </Select>
+              {selectedNarration?.status === 'processing' ? (
+                <p className="text-sm text-brand-700">Generating this voice’s book audio… It will be saved for the next listen.</p>
+              ) : (
+                <Button type="button" onClick={listenToBook} loading={loadingNarration} disabled={!selectedVoiceProfileId}>
+                  {selectedNarration?.status === 'ready' ? 'Listen again' : 'Generate & listen'}
+                </Button>
+              )}
+              {selectedNarration?.status === 'failed' && (
+                <Alert>{selectedNarration.error_message || 'Narration generation failed. Try again.'}</Alert>
+              )}
+              {narrationAudioUrl && (
+                <audio
+                  ref={narrationAudio}
+                  key={narrationAudioUrl}
+                  className="w-full"
+                  controls
+                  autoPlay
+                  preload="metadata"
+                  src={narrationAudioUrl}
+                >
+                  Your browser cannot play this narration.
+                </audio>
+              )}
+              {narrationError && <Alert>{narrationError}</Alert>}
+            </div>
+          )}
+        </Card>
         <Card className="overflow-hidden">
           <div className="relative mb-5 overflow-hidden rounded-2xl bg-brand-400/10 p-5">
             <h2 className="relative text-lg font-semibold text-brand-900">Read aloud for points</h2>

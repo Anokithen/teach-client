@@ -40,6 +40,7 @@ export default function BookDetailPage() {
   const [creatingNarration, setCreatingNarration] = useState(false);
   const [narrationError, setNarrationError] = useState<string | null>(null);
   const [narrationAudioUrl, setNarrationAudioUrl] = useState<string | null>(null);
+  const [imageIndex, setImageIndex] = useState(0);
   const narrationAudio = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -68,7 +69,10 @@ export default function BookDetailPage() {
     load();
   }, [id]);
 
+  useEffect(() => setImageIndex(0), [id]);
+
   const selectedNarration = narrations.find((narration) => String(narration.voice_profile_id) === narrationVoiceId) || null;
+  const storyImages = [book?.cover_image_url, ...(book?.image_urls || [])].filter(Boolean) as string[];
 
   useEffect(() => {
     if (selectedNarration?.status !== 'processing') return;
@@ -179,10 +183,20 @@ export default function BookDetailPage() {
             <Badge tone="neutral">{book.reading_level}</Badge>
           </div>
         </div>
-        {book.cover_image_url && (
-          // External admin-provided image URLs cannot be allowlisted at build time for next/image.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={book.cover_image_url} alt={`Cover for ${book.title}`} className="h-36 w-28 rounded-2xl object-cover shadow-card" />
+        {storyImages.length > 0 && (
+          <div className="w-full max-w-sm sm:w-72">
+            <div className="relative overflow-hidden rounded-3xl border border-brand-400/20 bg-brand-400/10 p-2 shadow-card">
+              {/* External admin-provided image URLs cannot be allowlisted at build time for next/image. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img key={storyImages[imageIndex]} src={storyImages[imageIndex]} alt={`Illustration ${imageIndex + 1} for ${book.title}`} className="story-gallery-image h-48 w-full rounded-2xl object-cover sm:h-56" />
+              <span className="reading-sparkle absolute right-4 top-3 text-2xl" aria-hidden="true">✨</span>
+              {storyImages.length > 1 && <>
+                <button type="button" aria-label="Previous book image" onClick={() => setImageIndex((index) => (index - 1 + storyImages.length) % storyImages.length)} className="absolute left-4 top-1/2 rounded-full bg-white/90 px-3 py-2 text-brand-900 shadow transition hover:scale-110">‹</button>
+                <button type="button" aria-label="Next book image" onClick={() => setImageIndex((index) => (index + 1) % storyImages.length)} className="absolute right-4 top-1/2 rounded-full bg-white/90 px-3 py-2 text-brand-900 shadow transition hover:scale-110">›</button>
+              </>}
+            </div>
+            {storyImages.length > 1 && <div className="mt-2 flex justify-center gap-1.5" aria-label="Book image selector">{storyImages.map((image, index) => <button type="button" key={image} aria-label={`Show image ${index + 1}`} onClick={() => setImageIndex(index)} className={`h-2 rounded-full transition-all ${index === imageIndex ? 'w-6 bg-brand-600' : 'w-2 bg-brand-400/40'}`} />)}</div>}
+          </div>
         )}
       </div>
 
@@ -194,9 +208,9 @@ export default function BookDetailPage() {
           </p>
           <div className="mt-6 rounded-2xl border border-violet-300 bg-violet-50/60 p-4">
             <h3 className="text-sm font-semibold text-brand-900">Listen in a familiar voice</h3>
-            <p className="mt-1 text-xs text-muted">Generate a private narration for this preview. It does not start or affect a reading session.</p>
+            <p className="mt-1 text-xs text-muted">The first listen generates and privately saves the ElevenLabs narration. Later listens reuse that saved audio for the same book and voice profile.</p>
             {voiceProfiles.length === 0 ? (
-              <p className="mt-3 text-sm text-muted">Add a ready voice recording to use this option.</p>
+              <p className="mt-3 text-sm text-muted">Create a ready voice clone first to use this option.</p>
             ) : (
               <div className="mt-3 space-y-3">
                 <Select label="Voice profile" value={narrationVoiceId} onChange={(event) => {
@@ -210,10 +224,10 @@ export default function BookDetailPage() {
                   <option value="">Choose a familiar voice</option>
                   {voiceProfiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.label || `Voice profile #${profile.id}`}</option>)}
                 </Select>
-                {!selectedNarration && <Button type="button" onClick={createNarration} loading={creatingNarration} disabled={!narrationVoiceId}>Generate narration</Button>}
+                {!selectedNarration && <Button type="button" onClick={createNarration} loading={creatingNarration} disabled={!narrationVoiceId}>Generate and listen</Button>}
                 {selectedNarration?.status === 'processing' && <div className="flex items-center gap-2 text-sm text-brand-700"><Spinner size={16} /> Generating narration… This can take a few minutes.</div>}
                 {selectedNarration?.status === 'failed' && <div className="space-y-2"><Alert>{selectedNarration.error_message || 'Narration generation failed.'}</Alert><Button type="button" onClick={createNarration} loading={creatingNarration}>Retry narration</Button></div>}
-                {selectedNarration?.status === 'ready' && <div className="space-y-3"><Button type="button" variant="ghost" onClick={loadNarrationAudio}>Load narration player</Button>{narrationAudioUrl && <audio ref={narrationAudio} key={narrationAudioUrl} className="w-full" controls autoPlay preload="metadata" src={narrationAudioUrl}>Your browser cannot play this narration.</audio>}</div>}
+                {selectedNarration?.status === 'ready' && <div className="space-y-3"><Button type="button" variant="ghost" onClick={loadNarrationAudio}>Listen to saved narration</Button>{narrationAudioUrl && <audio ref={narrationAudio} key={narrationAudioUrl} className="w-full" controls autoPlay preload="metadata" src={narrationAudioUrl}>Your browser cannot play this narration.</audio>}</div>}
               </div>
             )}
             {narrationError && <div className="mt-3"><Alert>{narrationError}</Alert></div>}

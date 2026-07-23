@@ -1,5 +1,5 @@
 import api from '@/lib/api';
-import { Role } from '@/lib/types';
+import { ReadingLevel, Role } from '@/lib/types';
 
 // ---- Auth ----
 export const authApi = {
@@ -118,8 +118,11 @@ export const adminApi = {
     text_content?: string;
     content_url?: string;
     cover_image_url?: string;
+    image_urls?: string[];
     video_url?: string;
   }) => api.post('/api/admin/books', payload),
+  generateBookDraft: (payload: { age_group: string; reading_level: ReadingLevel; idea: string }) =>
+    api.post('/api/admin/book-draft', payload),
   uploadBookMedia: (media: FormData) =>
     api.post('/api/admin/book-media', media, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };

@@ -39,6 +39,7 @@ export interface Book {
   reading_level: ReadingLevel;
   text_content?: string;
   cover_image_url?: string;
+  image_urls?: string[];
   video_url?: string;
 }
 
@@ -66,7 +67,9 @@ export interface ReadingSession {
   id: number;
   child_id: number;
   book_id: number;
+  voice_profile_id?: number | null;
   started_at: string;
+  completed_at?: string | null;
   is_complete: boolean;
   progress_log?: ProgressEntry[];
 }
@@ -97,6 +100,7 @@ export interface VoiceProfile {
   status: VoiceProfileStatus;
   created_at: string;
   voice_sample_url?: string;
+  has_cloned_voice?: boolean;
   owner_name?: string;
 }
 

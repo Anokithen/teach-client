@@ -21,6 +21,7 @@ export default function NewBookPage() {
   const [generating, setGenerating] = useState(false);
   const [storyIdea, setStoryIdea] = useState('a curious little sea turtle looking for a lost star');
   const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [illustrationFiles, setIllustrationFiles] = useState<File[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [mediaInputKey, setMediaInputKey] = useState(0);
 
@@ -34,16 +35,29 @@ export default function NewBookPage() {
 
   async function generateStory() {
     setError(null);
+    if (!storyIdea.trim()) {
+      setError('Write a story prompt first so Gemini knows what to create.');
+      return;
+    }
     setGenerating(true);
     try {
-      const response = await fetch('/api/ai/book-draft', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ageGroup: form.age_group, readingLevel: form.reading_level, idea: storyIdea }),
-      });
-      const draft = await response.json() as { title?: string; text_content?: string; message?: string };
-      if (!response.ok) throw new Error(draft.message || 'Could not make a story draft.');
-      setForm({ ...form, title: draft.title || form.title, text_content: draft.text_content || form.text_content });
-    } catch (err) { setError(err instanceof Error ? err.message : 'Could not make a story draft.'); }
+      const response = await adminApi.generateBookDraft({ age_group: form.age_group, reading_level: form.reading_level, idea: storyIdea });
+      const data = response.data as {
+        draft?: { title?: string; text_content?: string; text?: string };
+        title?: string;
+        text_content?: string;
+        text?: string;
+      };
+      // The Flask API wraps the draft, while the former Next API route returned
+      // it directly. Support both while deployments transition between them.
+      const draft = data.draft || data;
+      const generatedText = draft.text_content || draft.text || '';
+      if (!generatedText.trim()) throw new Error('Gemini did not return any book text. Please try again.');
+      setForm((current) => ({ ...current, title: draft.title || current.title, text_content: generatedText }));
+    } catch (err) {
+      const apiErr = err as ApiErrorShape;
+      setError(apiErr.message || (err instanceof Error ? err.message : 'Could not make a story draft.'));
+    }
     finally { setGenerating(false); }
   }
 
@@ -54,11 +68,15 @@ export default function NewBookPage() {
     setLoading(true);
     try {
       const cover_image_url = coverFile ? await uploadMedia(coverFile, 'image') : form.cover_image_url;
+      const image_urls = illustrationFiles.length
+        ? await Promise.all(illustrationFiles.map((file) => uploadMedia(file, 'image')))
+        : [];
       const video_url = videoFile ? await uploadMedia(videoFile, 'video') : form.video_url;
-      const res = await adminApi.createBook({ ...form, cover_image_url, video_url });
+      const res = await adminApi.createBook({ ...form, cover_image_url, image_urls, video_url });
       setCreatedBookId(res.data.book.id);
       setForm({ title: '', age_group: '3-5', reading_level: 'beginner', text_content: '', content_url: '', cover_image_url: '', video_url: '' });
       setCoverFile(null);
+      setIllustrationFiles([]);
       setVideoFile(null);
       setMediaInputKey((value) => value + 1);
     } catch (err) {
@@ -72,15 +90,15 @@ export default function NewBookPage() {
   return (
     <div className="max-w-2xl">
       <h1 className="text-2xl font-semibold text-brand-900">Add a book</h1>
-      <p className="mt-1 text-sm text-muted">Each new book automatically receives word puzzle, spelling, and quiz activities.</p>
+      <p className="mt-1 text-sm text-muted">Each new book automatically receives word puzzle, spelling, and a Gemini-generated story word quiz based on its content.</p>
       <Card className="sparkle-book-card mt-6 overflow-hidden">
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="rounded-2xl bg-brand-400/10 p-4">
             <p className="text-sm font-semibold text-brand-900">✨ Story starter</p>
-            <p className="mt-1 text-xs text-muted">Make an original, age-appropriate draft with OpenAI, then review and edit it before publishing.</p>
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-              <Input aria-label="Story idea" value={storyIdea} onChange={(e) => setStoryIdea(e.target.value)} />
-              <Button type="button" variant="secondary" loading={generating} onClick={generateStory} className="shrink-0">Make a story</Button>
+            <p className="mt-1 text-xs text-muted">Describe the characters, setting, lesson, and adventure you want. Gemini fills the title and story text for you.</p>
+            <div className="mt-3 space-y-2">
+              <Textarea label="Gemini story prompt" value={storyIdea} onChange={(e) => setStoryIdea(e.target.value)} placeholder="Example: A brave fox helps a lost bird find its family in a glowing forest." />
+              <Button type="button" variant="secondary" loading={generating} onClick={generateStory}>✨ Generate book with Gemini</Button>
             </div>
           </div>
           <Input label="Book title" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
@@ -95,11 +113,12 @@ export default function NewBookPage() {
           <Textarea label="Book text" required value={form.text_content} onChange={(e) => setForm({ ...form, text_content: e.target.value })} placeholder="Paste or write the story text used to build the games." />
           <div className="rounded-2xl border border-brand-400/20 bg-brand-400/5 p-4">
             <p className="text-sm font-semibold text-brand-900">Book media <span className="font-normal text-muted">(optional)</span></p>
-            <p className="mt-1 text-xs text-muted">Add public HTTPS links. These visuals never cover the book title or reading text.</p>
+            <p className="mt-1 text-xs text-muted">After Gemini creates the story, add a cover image, up to 8 illustrations, and an optional video. Uploaded files are stored in Cloudinary.</p>
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
               <Input label="Cover image URL" type="url" placeholder="https://…/cover.jpg" value={form.cover_image_url} onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })} />
               <Input label="Video URL" type="url" placeholder="https://…/story-video.mp4" value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })} />
               <div><label className="label">Or upload a cover image</label><input key={`cover-${mediaInputKey}`} className="input" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} /></div>
+              <div className="sm:col-span-2"><label className="label">Story illustrations (up to 8)</label><input key={`illustrations-${mediaInputKey}`} className="input" type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={(e) => setIllustrationFiles(Array.from(e.target.files || []).slice(0, 8))} /><p className="mt-1 text-xs text-muted">These appear as an animated gallery on the book profile and reading screen.</p>{illustrationFiles.length > 0 && <p className="mt-1 text-xs font-medium text-brand-700">{illustrationFiles.length} illustration{illustrationFiles.length === 1 ? '' : 's'} selected.</p>}</div>
               <div><label className="label">Or upload a video</label><input key={`video-${mediaInputKey}`} className="input" type="file" accept="video/mp4,video/webm,video/quicktime" onChange={(e) => setVideoFile(e.target.files?.[0] || null)} /></div>
             </div>
           </div>

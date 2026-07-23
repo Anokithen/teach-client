@@ -32,6 +32,62 @@ function PlaybackWave() {
   </div>;
 }
 
+function writeWavString(view: DataView, offset: number, value: string) {
+  for (let index = 0; index < value.length; index += 1) {
+    view.setUint8(offset + index, value.charCodeAt(index));
+  }
+}
+
+function audioBufferToWav(audioBuffer: AudioBuffer) {
+  const channelCount = audioBuffer.numberOfChannels;
+  const frameCount = audioBuffer.length;
+  const bytesPerSample = 2;
+  const blockAlign = channelCount * bytesPerSample;
+  const dataSize = frameCount * blockAlign;
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+
+  writeWavString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + dataSize, true);
+  writeWavString(view, 8, 'WAVE');
+  writeWavString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true); // PCM format chunk size
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, channelCount, true);
+  view.setUint32(24, audioBuffer.sampleRate, true);
+  view.setUint32(28, audioBuffer.sampleRate * blockAlign, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, bytesPerSample * 8, true);
+  writeWavString(view, 36, 'data');
+  view.setUint32(40, dataSize, true);
+
+  const channels = Array.from({ length: channelCount }, (_, channel) => audioBuffer.getChannelData(channel));
+  let offset = 44;
+  for (let frame = 0; frame < frameCount; frame += 1) {
+    for (let channel = 0; channel < channelCount; channel += 1) {
+      const sample = Math.max(-1, Math.min(1, channels[channel][frame]));
+      view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+      offset += bytesPerSample;
+    }
+  }
+
+  return new Blob([buffer], { type: 'audio/wav' });
+}
+
+async function convertRecordingToWav(recording: Blob) {
+  const AudioContextClass = window.AudioContext ||
+    (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AudioContextClass) throw new Error('Audio conversion is not supported by this browser.');
+
+  const audioContext = new AudioContextClass();
+  try {
+    const audioBuffer = await audioContext.decodeAudioData(await recording.arrayBuffer());
+    return audioBufferToWav(audioBuffer);
+  } finally {
+    await audioContext.close();
+  }
+}
+
 export default function VoiceProfilesPage() {
   const { isAdmin } = useAuth();
   const [profiles, setProfiles] = useState<VoiceProfile[] | null>(null);
@@ -108,12 +164,6 @@ export default function VoiceProfilesPage() {
     await uploadRecording(file);
   }
 
-  function extensionForMimeType(mimeType: string) {
-    if (mimeType.includes('ogg')) return 'ogg';
-    if (mimeType.includes('mp4')) return 'm4a';
-    return 'webm';
-  }
-
   async function startRecording() {
     setCreateError(null);
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
@@ -131,25 +181,30 @@ export default function VoiceProfilesPage() {
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) chunks.current.push(event.data);
       };
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop());
         recordingStream.current = null;
         const mimeType = mediaRecorder.mimeType || 'audio/webm';
-        const blob = new Blob(chunks.current, { type: mimeType });
-        if (!blob.size) {
+        const recordedBlob = new Blob(chunks.current, { type: mimeType });
+        if (!recordedBlob.size) {
           setCreateError('No audio was captured. Please try recording again.');
           return;
         }
-        if (blob.size > MAX_BYTES) {
-          setCreateError('The recording must be smaller than 25 MB.');
-          return;
+        try {
+          const wavBlob = await convertRecordingToWav(recordedBlob);
+          if (wavBlob.size > MAX_BYTES) {
+            setCreateError('The WAV recording must be smaller than 25 MB.');
+            return;
+          }
+          const recordedFile = new File([wavBlob], `voice-recording-${Date.now()}.wav`, { type: 'audio/wav' });
+          if (recordingUrl) URL.revokeObjectURL(recordingUrl);
+          setRecordingUrl(URL.createObjectURL(wavBlob));
+          setFile(recordedFile);
+          if (fileInput.current) fileInput.current.value = '';
+          void uploadRecording(recordedFile);
+        } catch {
+          setCreateError('Could not convert the recording to WAV. Please try again or choose an audio file instead.');
         }
-        const recordedFile = new File([blob], `voice-recording-${Date.now()}.${extensionForMimeType(mimeType)}`, { type: mimeType });
-        if (recordingUrl) URL.revokeObjectURL(recordingUrl);
-        setRecordingUrl(URL.createObjectURL(blob));
-        setFile(recordedFile);
-        if (fileInput.current) fileInput.current.value = '';
-        void uploadRecording(recordedFile);
       };
       mediaRecorder.start();
       setIsRecording(true);
@@ -210,8 +265,8 @@ export default function VoiceProfilesPage() {
   }
 
   return <div>
-    <h1 className="text-2xl font-semibold text-brand-900">Voice recordings</h1>
-    <p className="mt-1 text-sm text-muted">Private recordings are available only to their owner and administrators.</p>
+    <h1 className="text-2xl font-semibold text-brand-900">Voice profiles</h1>
+    <p className="mt-1 text-sm text-muted">Create a private ElevenLabs voice clone for book reading. Recordings are available only to their owner and administrators.</p>
     <div className="mt-6 grid gap-6 lg:grid-cols-3">
       <Card className="lg:col-span-2">
         <h2 className="mb-4 text-sm font-semibold text-brand-900">Stored voice profiles</h2>
@@ -222,7 +277,7 @@ export default function VoiceProfilesPage() {
           {profiles.map((profile) => <li key={profile.id} className="py-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div><p className="text-sm font-medium text-brand-900">{profile.label || `Voice profile #${profile.id}`}</p>
-                <p className="text-xs text-muted">{profile.owner_name && `${profile.owner_name} · `}Created {new Date(profile.created_at).toLocaleDateString()}</p></div>
+                <p className="text-xs text-muted">{profile.owner_name && `${profile.owner_name} · `}Created {new Date(profile.created_at).toLocaleDateString()} {profile.has_cloned_voice && '· ElevenLabs clone ready'}</p></div>
               <div className="flex items-center gap-2"><Badge tone={STATUS_TONE[profile.status] || 'warning'}>{profile.status}</Badge>
                 <Button variant="ghost" loading={previewingId === profile.id} onClick={() => onPreview(profile)}>Play</Button>
                 <Button variant="ghost" onClick={() => { setEditing(profile); setEditLabel(profile.label || ''); }}>Edit</Button>
@@ -237,14 +292,14 @@ export default function VoiceProfilesPage() {
           <audio ref={previewAudio} key={previewUrl} className="vibrant-audio-player w-full" controls autoPlay preload="metadata" src={previewUrl} onEnded={() => setPreviewUrl(null)} onError={() => setPreviewError('This recording could not be played. Please try again.')}>Your browser cannot play this recording.</audio>
         </div>}
       </Card>
-      {!isAdmin && <Card><h2 className="mb-4 text-sm font-semibold text-brand-900">Create a voice profile</h2>
+      {!isAdmin && <Card><h2 className="mb-4 text-sm font-semibold text-brand-900">Clone your voice</h2>
         <form onSubmit={onCreate} className="space-y-4">
           <Input label="Label (optional)" value={label} onChange={(event) => setLabel(event.target.value)} />
           <div className={`overflow-hidden rounded-2xl border p-4 transition-colors ${isRecording ? 'border-danger/40 bg-gradient-to-br from-rose-50 via-amber-50 to-cyan-50' : 'border-brand-400/30 bg-gradient-to-br from-cyan-50 via-sky-50 to-violet-50'}`}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-brand-900">Record with your microphone</p>
-                <p className="mt-1 text-xs text-muted">When you stop, the recording is saved to Cloudinary automatically.</p>
+              <p className="mt-1 text-xs text-muted">When you stop, the recording is converted to WAV, stored privately, and cloned by ElevenLabs.</p>
               </div>
               <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-lg shadow-sm ${isRecording ? 'animate-pulse bg-danger text-white' : 'bg-gradient-to-br from-brand-600 to-violet-500 text-white'}`}>🎙️</span>
             </div>
@@ -255,7 +310,7 @@ export default function VoiceProfilesPage() {
               {!isRecording ? <button type="button" onClick={startRecording} disabled={creating} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 via-cyan-500 to-violet-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"><span>●</span> Start recording</button> :
                 <Button type="button" variant="danger" onClick={stopRecording}>■ Stop &amp; save</Button>}
               {isRecording && <span className="text-sm font-semibold text-danger" aria-live="polite">Recording now…</span>}
-              {creating && <span className="text-sm text-muted" aria-live="polite">Saving to Cloudinary…</span>}
+              {creating && <span className="text-sm text-muted" aria-live="polite">Uploading and cloning your voice…</span>}
             </div>
             {recordingUrl && <div className="mt-3 rounded-xl bg-white/70 p-3"><div className="mb-2 flex items-center gap-2 text-xs font-semibold text-violet-700"><span>✨</span> Listen back before sharing</div><PlaybackWave /><audio key={recordingUrl} className="vibrant-audio-player w-full" controls preload="metadata" src={recordingUrl} onEnded={() => setRecordingUrl(null)} onError={() => setCreateError('This recording could not be played. Please record it again.')}>Your browser cannot play this recording.</audio></div>}
           </div>
@@ -268,7 +323,7 @@ export default function VoiceProfilesPage() {
             </span>
           </label>
           <p className="-mt-2 text-xs text-muted">MP3, WAV, WebM, OGG, or M4A/MP4, smaller than 25 MB. Upload only a voice you have permission to use.</p>
-          <Alert>{createError}</Alert><Button type="submit" loading={creating} disabled={!file || isRecording} className="w-full">Upload selected file</Button>
+          <Alert>{createError}</Alert><Button type="submit" loading={creating} disabled={!file || isRecording} className="w-full">Create voice clone</Button>
         </form>
       </Card>
       }
