@@ -8,21 +8,18 @@ import { Logo } from '@/components/layout/Logo';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
-import { ApiErrorShape, Role } from '@/lib/types';
+import { ApiErrorShape } from '@/lib/types';
 
 interface RegisterForm {
   name: string;
   email: string;
   password: string;
-  role: Role;
 }
-
-const ROLES: Extract<Role, 'parent' | 'teacher'>[] = ['parent', 'teacher'];
 
 export default function RegisterPage() {
   const { register, login } = useAuth();
   const router = useRouter();
-  const [form, setForm] = useState<RegisterForm>({ name: '', email: '', password: '', role: 'parent' });
+  const [form, setForm] = useState<RegisterForm>({ name: '', email: '', password: '' });
   const [error, setError] = useState<string | string[] | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -59,25 +56,9 @@ export default function RegisterPage() {
           <p className="mb-6 text-sm text-muted">Start guiding reading sessions in a few minutes.</p>
 
           <form onSubmit={onSubmit} className="space-y-4">
-            <div>
-              <span className="label">I am a</span>
-              <div className="grid grid-cols-2 gap-2">
-                {ROLES.map((r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => setForm({ ...form, role: r })}
-                    className={`rounded-xl border px-3 py-2.5 text-sm font-medium capitalize transition-colors ${
-                      form.role === r
-                        ? 'border-brand-900 bg-brand-900 text-white'
-                        : 'border-border text-brand-900 hover:bg-bg'
-                    }`}
-                  >
-                    {r}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <p className="rounded-xl bg-brand-400/10 px-3 py-2 text-sm text-muted">
+              Public sign-up creates a parent account. Teachers are invited by an administrator.
+            </p>
             <Input
               label="Name"
               name="name"

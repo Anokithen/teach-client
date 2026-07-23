@@ -1,6 +1,6 @@
 # TeachAlike frontend
 
-Next.js (App Router) + Tailwind CSS frontend for the TeachAlike Flask backend (`core`),
+Next.js (App Router) + Tailwind CSS frontend for the TeachAlike Flask backend (`Teach-api`),
 built from `TeachAlike_Frontend_Spec.md`.
 
 ## Setup
@@ -33,12 +33,10 @@ Flask backend) is running, e.g. `http://localhost:5000`.
 
 - **Teacher "add child" form** takes a plain numeric parent account ID — there's no
   backend endpoint yet for a teacher to search/select an existing parent by name.
-- **Voice profile creation** takes a sample URL directly — there's no upload endpoint
-  in the contract, so recording/upload plumbing isn't implemented; the field is a URL
-  input with a note that you're expected to upload elsewhere first.
-- **`/api/sync`** (offline batch upload) isn't built — the spec marks it lowest priority
-  unless you're building an offline-first reading mode. `syncApi.push` exists in
-  `lib/endpoints.ts` if you want to wire up a screen for it.
+- **Voice profile creation** records audio in the browser and uploads it as multipart
+  form data to the authenticated API endpoint.
+- **`/api/sync`** is available through `syncApi.push` for offline clients; there is
+  not yet a dedicated offline-first UI screen.
 
 ## Brand
 

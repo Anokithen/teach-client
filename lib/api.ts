@@ -88,12 +88,16 @@ api.interceptors.response.use(
   async (error: AxiosError<BackendErrorData>) => {
     const originalRequest = error.config as RetryableRequestConfig | undefined;
     const status = error.response?.status;
-    const isAuthRoute =
+    // Some authenticated endpoints intentionally use 401 for a failed
+    // business check. An incorrect child PIN must stay in the PIN modal; it
+    // must not sign the parent out or start a token refresh.
+    const isNonRefreshable401Route =
       originalRequest?.url?.includes('/api/auth/login') ||
       originalRequest?.url?.includes('/api/auth/register') ||
-      originalRequest?.url?.includes('/api/auth/refresh');
+      originalRequest?.url?.includes('/api/auth/refresh') ||
+      (originalRequest?.url?.includes('/api/children/') && originalRequest?.url?.includes('/verify-pin'));
 
-    if (status === 401 && originalRequest && !originalRequest._retry && !isAuthRoute) {
+    if (status === 401 && originalRequest && !originalRequest._retry && !isNonRefreshable401Route) {
       const refreshToken = getRefreshToken();
       if (!refreshToken) {
         clearTokens();

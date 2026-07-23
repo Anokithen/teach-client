@@ -21,7 +21,9 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     }
   }, [isLoading, isAuthenticated, isAdmin, pathname, router]);
 
-  if (isLoading || !isAuthenticated) {
+  const isUnauthorizedAdminRoute = pathname?.startsWith('/admin') && !isAdmin;
+
+  if (isLoading || !isAuthenticated || isUnauthorizedAdminRoute) {
     return <LoadingSplash />;
   }
 

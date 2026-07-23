@@ -15,7 +15,7 @@ interface AuthContextValue {
   isTeacher: boolean;
   isParent: boolean;
   login: (payload: { email: string; password: string }) => Promise<Account>;
-  register: (payload: { name: string; email: string; password: string; role: Role }) => Promise<Account>;
+  register: (payload: { name: string; email: string; password: string }) => Promise<Account>;
   logout: () => Promise<void>;
   refreshAccount: () => Promise<Account>;
 }
@@ -57,8 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const register = useCallback(
-    async ({ name, email, password, role }: { name: string; email: string; password: string; role: Role }) => {
-      const res = await authApi.register({ name, email, password, role });
+    async ({ name, email, password }: { name: string; email: string; password: string }) => {
+      const res = await authApi.register({ name, email, password });
       return res.data.parent as Account;
     },
     []

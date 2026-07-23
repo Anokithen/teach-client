@@ -1,9 +1,9 @@
 import api from '@/lib/api';
-import { ReadingLevel, Role } from '@/lib/types';
+import { ReadingLevel } from '@/lib/types';
 
 // ---- Auth ----
 export const authApi = {
-  register: (payload: { name: string; email: string; password: string; role: Role }) =>
+  register: (payload: { name: string; email: string; password: string }) =>
     api.post('/api/auth/register', payload),
   login: (payload: { email: string; password: string }) => api.post('/api/auth/login', payload),
   logout: () => api.post('/api/auth/logout'),
