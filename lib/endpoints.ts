@@ -9,6 +9,11 @@ export const authApi = {
   logout: () => api.post('/api/auth/logout'),
 };
 
+// ---- AI model discovery ----
+export const aiApi = {
+  models: () => api.get('/api/ai/models'),
+};
+
 // ---- Account ("parent" object holds parent/teacher/admin) ----
 export const accountApi = {
   me: () => api.get('/api/parents/me'),
@@ -121,7 +126,7 @@ export const adminApi = {
     image_urls?: string[];
     video_url?: string;
   }) => api.post('/api/admin/books', payload),
-  generateBookDraft: (payload: { age_group: string; reading_level: ReadingLevel; idea: string }) =>
+  generateBookDraft: (payload: { age_group: string; reading_level: ReadingLevel; idea: string; model?: string }) =>
     api.post('/api/admin/book-draft', payload),
   uploadBookMedia: (media: FormData) =>
     api.post('/api/admin/book-media', media, { headers: { 'Content-Type': 'multipart/form-data' } }),

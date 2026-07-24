@@ -155,9 +155,14 @@ export default function BookDetailPage() {
   function selectChild(value: string) {
     if (!value) {
       setChildId('');
+      setPendingChild(null);
       return;
     }
-    setPendingChild(children?.find((child) => String(child.id) === value) || null);
+    const selected = children?.find((child) => String(child.id) === value) || null;
+    setChildId('');
+    if (selected?.has_pin) setPendingChild(selected);
+    else setPendingChild(null);
+    if (selected && !selected.has_pin) setChildId(String(selected.id));
   }
 
   if (error) return <Alert>{error}</Alert>;

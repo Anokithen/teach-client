@@ -27,6 +27,7 @@ export default function BooksPage() {
     let cancelled = false;
     async function load() {
       setBooks(null);
+      setError(null);
       try {
         const params: Record<string, string> = {};
         if (filters.age_group) params.age_group = filters.age_group;

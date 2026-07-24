@@ -1,13 +1,13 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { adminApi } from '@/lib/endpoints';
+import { adminApi, aiApi } from '@/lib/endpoints';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input, Select, Textarea } from '@/components/ui/Input';
-import { ApiErrorShape, ReadingLevel } from '@/lib/types';
+import { AiModel, ApiErrorShape, ReadingLevel } from '@/lib/types';
 
 const AGE_GROUPS = ['3-5', '6-8', '9-11', '12+'];
 
@@ -24,6 +24,28 @@ export default function NewBookPage() {
   const [illustrationFiles, setIllustrationFiles] = useState<File[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [mediaInputKey, setMediaInputKey] = useState(0);
+  const [aiModels, setAiModels] = useState<AiModel[]>([]);
+  const [selectedAiModel, setSelectedAiModel] = useState('');
+  const [aiModelsLoading, setAiModelsLoading] = useState(true);
+  const [aiModelsError, setAiModelsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    aiApi.models()
+      .then((response) => {
+        if (!mounted) return;
+        const models = (response.data.models || []) as AiModel[];
+        setAiModels(models);
+        setSelectedAiModel(response.data.default_model || models[0]?.id || '');
+      })
+      .catch((err) => {
+        if (mounted) setAiModelsError((err as ApiErrorShape).message || 'Could not load Groq models.');
+      })
+      .finally(() => {
+        if (mounted) setAiModelsLoading(false);
+      });
+    return () => { mounted = false; };
+  }, []);
 
   async function uploadMedia(file: File, mediaType: 'image' | 'video') {
     const media = new FormData();
@@ -36,12 +58,12 @@ export default function NewBookPage() {
   async function generateStory() {
     setError(null);
     if (!storyIdea.trim()) {
-      setError('Write a story prompt first so Gemini knows what to create.');
+      setError('Write a story prompt first so the AI knows what to create.');
       return;
     }
     setGenerating(true);
     try {
-      const response = await adminApi.generateBookDraft({ age_group: form.age_group, reading_level: form.reading_level, idea: storyIdea });
+      const response = await adminApi.generateBookDraft({ age_group: form.age_group, reading_level: form.reading_level, idea: storyIdea, model: selectedAiModel || undefined });
       const data = response.data as {
         draft?: { title?: string; text_content?: string; text?: string };
         title?: string;
@@ -52,7 +74,7 @@ export default function NewBookPage() {
       // it directly. Support both while deployments transition between them.
       const draft = data.draft || data;
       const generatedText = draft.text_content || draft.text || '';
-      if (!generatedText.trim()) throw new Error('Gemini did not return any book text. Please try again.');
+      if (!generatedText.trim()) throw new Error('The AI did not return any book text. Please try again.');
       setForm((current) => ({ ...current, title: draft.title || current.title, text_content: generatedText }));
     } catch (err) {
       const apiErr = err as ApiErrorShape;
@@ -90,15 +112,22 @@ export default function NewBookPage() {
   return (
     <div className="max-w-2xl">
       <h1 className="text-2xl font-semibold text-brand-900">Add a book</h1>
-      <p className="mt-1 text-sm text-muted">Each new book automatically receives word puzzle, spelling, and a Gemini-generated story word quiz based on its content.</p>
+      <p className="mt-1 text-sm text-muted">Each new book automatically receives word puzzle, spelling, and an AI-generated story word quiz based on its content.</p>
       <Card className="sparkle-book-card mt-6 overflow-hidden">
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="rounded-2xl bg-brand-400/10 p-4">
             <p className="text-sm font-semibold text-brand-900">✨ Story starter</p>
-            <p className="mt-1 text-xs text-muted">Describe the characters, setting, lesson, and adventure you want. Gemini fills the title and story text for you.</p>
+            <p className="mt-1 text-xs text-muted">Describe the characters, setting, lesson, and adventure you want. Groq fills the title and story text for you.</p>
             <div className="mt-3 space-y-2">
-              <Textarea label="Gemini story prompt" value={storyIdea} onChange={(e) => setStoryIdea(e.target.value)} placeholder="Example: A brave fox helps a lost bird find its family in a glowing forest." />
-              <Button type="button" variant="secondary" loading={generating} onClick={generateStory}>✨ Generate book with Gemini</Button>
+              <Textarea label="AI story prompt" value={storyIdea} onChange={(e) => setStoryIdea(e.target.value)} placeholder="Example: A brave fox helps a lost bird find its family in a glowing forest." />
+              <Select label="Groq AI model" value={selectedAiModel} onChange={(e) => setSelectedAiModel(e.target.value)} disabled={aiModelsLoading || aiModels.length === 0}>
+                {aiModels.length === 0 && <option value="">{aiModelsLoading ? 'Loading available models…' : 'No Groq models available'}</option>}
+                {aiModels.map((model) => <option key={model.id} value={model.id}>{model.id}</option>)}
+              </Select>
+              <p className="text-xs text-muted">
+                {aiModelsError || (aiModelsLoading ? 'Loading the current model list from Groq…' : 'This list comes from Groq’s active models.')}
+              </p>
+              <Button type="button" variant="secondary" loading={generating} onClick={generateStory}>✨ Generate book with Groq</Button>
             </div>
           </div>
           <Input label="Book title" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
@@ -113,7 +142,7 @@ export default function NewBookPage() {
           <Textarea label="Book text" required value={form.text_content} onChange={(e) => setForm({ ...form, text_content: e.target.value })} placeholder="Paste or write the story text used to build the games." />
           <div className="rounded-2xl border border-brand-400/20 bg-brand-400/5 p-4">
             <p className="text-sm font-semibold text-brand-900">Book media <span className="font-normal text-muted">(optional)</span></p>
-            <p className="mt-1 text-xs text-muted">After Gemini creates the story, add a cover image, up to 8 illustrations, and an optional video. Uploaded files are stored in Cloudinary.</p>
+            <p className="mt-1 text-xs text-muted">After Groq creates the story, add a cover image, up to 8 illustrations, and an optional video. Uploaded files are stored in Cloudinary.</p>
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
               <Input label="Cover image URL" type="url" placeholder="https://…/cover.jpg" value={form.cover_image_url} onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })} />
               <Input label="Video URL" type="url" placeholder="https://…/story-video.mp4" value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })} />

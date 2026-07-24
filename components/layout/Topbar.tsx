@@ -16,12 +16,12 @@ export function Topbar({ onMenuClick, sidebarCollapsed, onSidebarToggle }: Topba
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/10 bg-brand-900/95 px-4 py-3 text-white backdrop-blur lg:px-8">
-      <div className="flex items-center gap-2 lg:hidden">
+    <header className="sticky top-0 z-30 flex min-w-0 items-center justify-between gap-2 border-b border-white/10 bg-brand-900/95 px-3 py-3 text-white backdrop-blur sm:px-4 lg:px-8">
+      <div className="flex min-w-0 items-center gap-1.5 lg:hidden">
         <button
           type="button"
           onClick={onMenuClick}
-          className="rounded-lg p-2 text-white hover:bg-white/10"
+          className="shrink-0 rounded-lg p-2 text-white hover:bg-white/10"
           aria-label="Open menu"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -38,18 +38,18 @@ export function Topbar({ onMenuClick, sidebarCollapsed, onSidebarToggle }: Topba
         {sidebarCollapsed && <div className="header-brand-reveal"><Logo /></div>}
       </div>
 
-      <div className="relative">
+      <div className="relative min-w-0 shrink-0">
         <button
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
-          className="flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-3 py-2 text-left text-sm font-medium text-white shadow-sm transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-brand-400"
+          className="flex max-w-[calc(100vw-5.5rem)] items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-2 py-2 text-left text-sm font-medium text-white shadow-sm transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-brand-400 sm:max-w-none sm:gap-3 sm:px-3"
           aria-expanded={menuOpen}
           aria-label="Open profile menu"
         >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-brand-400 bg-white/15 text-base font-bold text-white shadow-inner">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-brand-400 bg-white/15 text-base font-bold text-white shadow-inner sm:h-10 sm:w-10">
             {account?.name?.[0]?.toUpperCase() || '?'}
           </span>
-          <span className="flex min-w-0 flex-col">
+          <span className="hidden min-w-0 flex-col min-[380px]:flex">
             <span className="max-w-[145px] truncate font-semibold leading-tight">{account?.name || 'My profile'}</span>
             <span className="mt-0.5 text-xs capitalize text-cyan-100">{account?.role || 'Account'}</span>
           </span>

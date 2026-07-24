@@ -161,7 +161,7 @@ export default function ReadingSessionPage() {
     setPronunciationError(null);
     setPronunciationResult(null);
     try {
-      if (!navigator.mediaDevices?.getUserMedia) throw new Error('Microphone recording is not supported in this browser. Please use Chrome, Edge, or Safari over HTTPS or localhost.');
+      if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) throw new Error('Microphone recording is not supported in this browser. Please use Chrome, Edge, or Safari over HTTPS or localhost.');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
       streamRef.current = stream;
       const chunks: BlobPart[] = [];
@@ -177,7 +177,8 @@ export default function ReadingSessionPage() {
         setTranscribing(true);
         try {
           const form = new FormData();
-          form.append('audio', audio, 'my-reading.webm');
+          const extension = (recorder.mimeType || '').includes('mp4') ? 'mp4' : (recorder.mimeType || '').includes('ogg') ? 'ogg' : 'webm';
+          form.append('audio', audio, `my-reading.${extension}`);
           form.append('sentence_index', String(sentenceIndex));
           const response = await sessionsApi.transcribePronunciation(id, form);
           const spoken = response.data.transcript as string;

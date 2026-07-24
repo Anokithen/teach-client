@@ -34,9 +34,9 @@ export default function LandingPage() {
 
   return (
     <div className="home-night min-h-screen">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+      <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-5 sm:px-6 sm:py-6">
         <Logo />
-        <nav className="flex items-center gap-3">
+        <nav className="ml-auto flex items-center gap-2 sm:gap-3">
           {isAuthenticated ? (
             <Link href="/dashboard" className="btn-primary">
               Go to dashboard

@@ -64,6 +64,9 @@ export function normalizeError(error: AxiosError<BackendErrorData> | unknown): A
   if (err?.code === 'ECONNABORTED') {
     return { message: 'The request took too long. Please check your connection and try again.', fields: [], status: err?.response?.status };
   }
+  if (error instanceof Error && error.message) {
+    return { message: error.message, fields: [error.message], status: err?.response?.status };
+  }
   return { message: 'Something went wrong. Please try again.', fields: [], status: err?.response?.status };
 }
 

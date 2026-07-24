@@ -134,3 +134,9 @@ export interface ApiErrorShape {
   fields: string[];
   status?: number;
 }
+
+export interface AiModel {
+  id: string;
+  owned_by?: string;
+  context_window?: number | null;
+}

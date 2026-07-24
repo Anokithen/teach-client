@@ -33,7 +33,12 @@ export function Sidebar({ open, collapsed, onClose }: SidebarProps) {
         }`}
       >
         <div className="mb-8 px-1">
-          <Logo />
+          <div className="flex items-center justify-between gap-2">
+            <Logo />
+            <button type="button" onClick={onClose} className="rounded-lg p-2 text-cyan-100 hover:bg-white/10 lg:hidden" aria-label="Close menu">
+              <span aria-hidden="true" className="text-xl leading-none">×</span>
+            </button>
+          </div>
         </div>
         <nav className="flex flex-1 flex-col gap-1">
           {items.map((item) => {

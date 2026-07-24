@@ -30,6 +30,7 @@ export default function LeaderboardPage() {
   useEffect(() => {
     let cancelled = false;
     setData(null);
+    setError(null);
     leaderboardApi
       .list(week)
       .then((res) => {
@@ -57,11 +58,12 @@ export default function LeaderboardPage() {
             e.preventDefault();
             setWeek(weekInput || 'current');
           }}
-          className="flex items-end gap-2"
+          className="flex w-full flex-wrap items-end gap-2 sm:w-auto"
         >
           <Input
             label="Week (YYYY-MM-DD)"
             placeholder="current"
+            className="min-w-0 flex-1 sm:w-44 sm:flex-none"
             value={weekInput}
             onChange={(e) => setWeekInput(e.target.value)}
           />
