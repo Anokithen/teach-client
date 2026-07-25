@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth-context';
 
 export const metadata: Metadata = {
-  title: 'TeachAlike — Learn. Listen. Grow.',
+  title: 'TeachAlike - Learn. Listen. Grow.',
   description:
     'TeachAlike is a reading-companion app for children: guided reading sessions, book-linked mini-games, and family voice profiles.',
 };

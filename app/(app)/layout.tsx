@@ -19,7 +19,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             sidebarCollapsed={sidebarCollapsed}
             onSidebarToggle={() => setSidebarCollapsed((value) => !value)}
           />
-          <main className="min-w-0 flex-1 bg-bg/95 px-3 py-5 sm:px-4 sm:py-6 lg:px-8 lg:py-8">
+          <main className="min-w-0 flex-1 bg-bg/95 px-3 pb-5 pt-16 sm:px-4 sm:pb-6 lg:px-8 lg:pb-8">
             <div className="mx-auto max-w-6xl">{children}</div>
           </main>
         </div>
