@@ -317,7 +317,7 @@ export default function VoiceProfilesPage() {
           <label className="block">
             <span className="text-sm font-semibold text-brand-900">Or upload an existing recording</span>
             <input ref={fileInput} type="file" accept="audio/mpeg,audio/wav,audio/webm,audio/ogg,audio/mp4,.mp3,.wav,.webm,.ogg,.m4a,.mp4" onChange={onFileChange} className="sr-only" />
-            <span className="mt-2 flex cursor-pointer items-center justify-between gap-3 rounded-xl border-2 border-dashed border-violet-300 bg-gradient-to-r from-violet-50 via-fuchsia-50 to-amber-50 px-4 py-3 transition hover:border-brand-400 hover:shadow-sm">
+            <span className="voice-file-picker mt-2 flex cursor-pointer items-center justify-between gap-3 rounded-xl border-2 border-dashed border-violet-300 bg-gradient-to-r from-violet-50 via-fuchsia-50 to-amber-50 px-4 py-3 transition hover:border-brand-400 hover:shadow-sm">
               <span className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-lg text-white">↑</span><span><span className="block text-sm font-semibold text-violet-700">Choose audio file</span><span className="block text-xs text-muted">Tap to browse your device</span></span></span>
               <span className="max-w-28 truncate text-xs font-medium text-brand-600">{file?.name || 'No file chosen'}</span>
             </span>

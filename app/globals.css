@@ -207,6 +207,7 @@
   .dark .voice-recorder-panel { background: linear-gradient(135deg, #123A45, #2E2948 52%, #1F2D4A) !important; }
   .dark .voice-recorder-panel.is-recording { background: linear-gradient(135deg, #432B36, #493A22 52%, #123A45) !important; }
   .dark .voice-recorder-status, .dark .voice-recording-preview { background: rgba(22, 43, 58, .88) !important; }
+  .dark .voice-file-picker { background: linear-gradient(90deg, #252542, #3A2947 52%, #493A22) !important; border-color: #554B78 !important; }
   .dark .weekly-challenge-card { background: linear-gradient(135deg, #493A22, #1C3443 52%, #123A45) !important; }
   .dark .weekly-challenge-summary { background: rgba(22, 43, 58, .88) !important; }
 
