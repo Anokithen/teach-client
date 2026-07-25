@@ -5,6 +5,24 @@
 @layer base {
   :root {
     --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+    --color-bg: 238 244 246;
+    --color-surface: 246 249 250;
+    --color-border: 211 225 231;
+    --color-muted: 91 113 131;
+    --color-success: 63 166 107;
+    --color-warning: 224 164 56;
+    --color-danger: 214 83 75;
+  }
+
+  html.dark {
+    color-scheme: dark;
+    --color-bg: 12 29 43;
+    --color-surface: 22 43 58;
+    --color-border: 49 77 94;
+    --color-muted: 164 184 193;
+    --color-success: 105 212 142;
+    --color-warning: 247 195 93;
+    --color-danger: 242 128 120;
   }
 
   body {
@@ -18,7 +36,7 @@
   body::after { content: ''; pointer-events: none; position: fixed; z-index: 0; right: 5.2rem; bottom: 1.5rem; width: .72rem; height: .72rem; border-radius: 999px; background: rgba(84,172,191,.28); box-shadow: -80vw -42vh 0 rgba(139,92,246,.16), -23vw -74vh 0 rgba(224,164,56,.18), -58vw 12vh 0 rgba(84,172,191,.18); animation: page-bubble-float 7s ease-in-out infinite; }
   body > div { position: relative; z-index: 1; }
 
-  .text-muted { color: #3E5D73; }
+  .text-muted { color: rgb(var(--color-muted)); }
   .brand-logo-mark { display: grid; place-items: center; width: 48px; height: 48px; flex: 0 0 auto; border-radius: 1rem; background: rgba(248,251,252,.98); box-shadow: 0 4px 14px rgba(0, 0, 0, .16); }
   .brand-logo-mark img { width: 42px; height: 42px; object-fit: contain; }
   .home-night { background: radial-gradient(circle at 84% 17%, rgba(84,172,191,.30), transparent 23rem), radial-gradient(circle at 12% 84%, rgba(124,58,237,.18), transparent 27rem), linear-gradient(145deg, #011f36, #023859 48%, #064B77); }
@@ -130,6 +148,7 @@
   }
 
   .app-shell { background: linear-gradient(135deg, #062F52 0%, #023859 30%, #EAF4F8 30%, #F7FAFB 100%); }
+  .dark .app-shell { background: linear-gradient(135deg, #061D2E 0%, #082A40 30%, #0C1D2B 30%, #0C1D2B 100%); }
   .sidebar-kids { background: linear-gradient(165deg, #012D4C, #064B77 58%, #26658C); }
   .sidebar-kids .text-brand-900 { color: white; }
   .sidebar-kids .brand-logo { padding: .35rem; border-radius: 1.1rem; background: rgba(255,255,255,.10); }
@@ -142,6 +161,24 @@
   .header-brand-reveal { animation: header-brand-enter .35s ease-out both; }
   .header-brand-reveal .brand-logo { border-radius: 1rem; padding: .2rem .55rem .2rem .2rem; background: rgba(255,255,255,.10); box-shadow: 0 0 20px rgba(84,172,191,.18); }
   .sidebar-kids::before { content: '✦  ●  ✦'; display: block; margin: -2px 0 18px; color: #8EE5F3; letter-spacing: 1rem; font-size: 1rem; animation: twinkle 2.8s ease-in-out infinite; }
+
+  .dark body {
+    background-image: radial-gradient(circle at 8% 4%, rgba(84, 172, 191, .12), transparent 26rem), radial-gradient(circle at 92% 12%, rgba(91, 93, 212, .10), transparent 24rem), radial-gradient(circle at 50% 100%, rgba(224, 164, 56, .07), transparent 30rem);
+  }
+  .dark .card { box-shadow: 10px 10px 24px rgba(1, 12, 21, .28), -8px -8px 22px rgba(72, 111, 128, .08); }
+  .dark .input { box-shadow: inset 3px 3px 7px rgba(1, 12, 21, .22), inset -2px -2px 5px rgba(72, 111, 128, .10); }
+  .dark .text-brand-900 { color: #E6F3F6; }
+  .dark .text-brand-600 { color: #79C7D8; }
+  .dark .text-brand-400 { color: #8EE5F3; }
+  .dark .bg-white { background-color: #1C3443; }
+  .dark .bg-white\/70 { background-color: rgb(28 52 67 / .70); }
+  .dark .bg-white\/80 { background-color: rgb(28 52 67 / .80); }
+  .dark .bg-white\/85 { background-color: rgb(28 52 67 / .85); }
+  .dark .bg-white\/90 { background-color: rgb(28 52 67 / .90); }
+  .dark .bg-brand-50 { background-color: #102D3F; }
+  .dark .bg-brand-100 { background-color: #1A4052; }
+  .dark .border-brand-100 { border-color: #2A5364; }
+  .dark .home-feature { background: rgba(22, 43, 58, .96); box-shadow: 10px 10px 25px rgba(1, 12, 21, .32), -5px -5px 18px rgba(72, 111, 128, .08); }
 
   .loading-splash { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; padding: 2rem; text-align: center; background: radial-gradient(circle at 50% 42%, #26658C 0%, #023859 42%, #01233d 100%); }
   .loading-logo-wrap { z-index: 1; display: grid; place-items: center; width: 136px; height: 136px; border-radius: 999px; background: rgba(255,255,255,.96); box-shadow: 0 0 0 12px rgba(84,172,191,.18), 0 22px 50px rgba(0,0,0,.28); animation: logo-bob 2s ease-in-out infinite; }

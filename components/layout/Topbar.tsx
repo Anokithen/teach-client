@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { Logo } from '@/components/layout/Logo';
@@ -14,6 +14,24 @@ interface TopbarProps {
 export function Topbar({ onMenuClick, sidebarCollapsed, onSidebarToggle }: TopbarProps) {
   const { account, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    const storedTheme = window.localStorage.getItem('teachalike_theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = storedTheme ? storedTheme === 'dark' : prefersDark;
+    setDarkMode(isDark);
+    document.documentElement.classList.toggle('dark', isDark);
+    document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+  }, []);
+
+  function toggleTheme() {
+    const nextDarkMode = !darkMode;
+    setDarkMode(nextDarkMode);
+    window.localStorage.setItem('teachalike_theme', nextDarkMode ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', nextDarkMode);
+    document.documentElement.style.colorScheme = nextDarkMode ? 'dark' : 'light';
+  }
 
   return (
     <header className="sticky top-0 z-30 flex w-full min-w-0 shrink-0 items-center justify-between gap-2 border-b border-white/10 bg-brand-900/95 px-3 py-3 text-white backdrop-blur sm:px-4 lg:px-8">
@@ -38,7 +56,17 @@ export function Topbar({ onMenuClick, sidebarCollapsed, onSidebarToggle }: Topba
         {sidebarCollapsed && <div className="header-brand-reveal"><Logo /></div>}
       </div>
 
-      <div className="relative min-w-0 shrink-0">
+      <div className="flex min-w-0 shrink-0 items-center gap-2">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/20 bg-white/10 text-lg text-white transition hover:bg-white/20 active:scale-90"
+          aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          <span aria-hidden="true">{darkMode ? '☀️' : '🌙'}</span>
+        </button>
+        <div className="relative min-w-0">
         <button
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
@@ -85,6 +113,7 @@ export function Topbar({ onMenuClick, sidebarCollapsed, onSidebarToggle }: Topba
             </div>
           </>
         )}
+        </div>
       </div>
     </header>
   );
