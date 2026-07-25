@@ -203,13 +203,13 @@ function ParentDashboard({
             </div>
           </Card>
 
-          <Card className="bg-gradient-to-br from-amber-50 via-white to-cyan-50">
+          <Card className="weekly-challenge-card bg-gradient-to-br from-amber-50 via-white to-cyan-50">
             <div className="flex items-start justify-between gap-3">
               <div><p className="text-xs font-semibold uppercase tracking-[.16em] text-amber-700">Weekly challenge</p><h2 className="mt-1 text-xl font-bold text-brand-900">Make it a bright week</h2></div>
               <span className="text-3xl">🌟</span>
             </div>
             <p className="mt-3 text-sm leading-6 text-muted">Read a story, try a mini-game, and watch your family climb the board together.</p>
-            <div className="mt-5 rounded-2xl bg-white/80 p-4 shadow-sm">
+            <div className="weekly-challenge-summary mt-5 rounded-2xl bg-white/80 p-4 shadow-sm">
               <div className="flex items-end justify-between"><span className="text-sm font-semibold text-brand-900">Family points</span><span className="text-2xl font-black text-brand-600">{familyPoints}</span></div>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-amber-100"><div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-brand-500 transition-all" style={{ width: `${Math.min(100, familyPoints ? Math.max(12, familyPoints / 2) : 4)}%` }} /></div>
               <p className="mt-2 text-xs text-muted">{bestRank ? `Your best reader is ranked #${bestRank}.` : 'Your first points are waiting.'}</p>

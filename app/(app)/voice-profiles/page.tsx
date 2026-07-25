@@ -295,7 +295,7 @@ export default function VoiceProfilesPage() {
       {!isAdmin && <Card><h2 className="mb-4 text-sm font-semibold text-brand-900">Clone your voice</h2>
         <form onSubmit={onCreate} className="space-y-4">
           <Input label="Label (optional)" value={label} onChange={(event) => setLabel(event.target.value)} />
-          <div className={`overflow-hidden rounded-2xl border p-4 transition-colors ${isRecording ? 'border-danger/40 bg-gradient-to-br from-rose-50 via-amber-50 to-cyan-50' : 'border-brand-400/30 bg-gradient-to-br from-cyan-50 via-sky-50 to-violet-50'}`}>
+          <div className={`voice-recorder-panel overflow-hidden rounded-2xl border p-4 transition-colors ${isRecording ? 'is-recording border-danger/40 bg-gradient-to-br from-rose-50 via-amber-50 to-cyan-50' : 'border-brand-400/30 bg-gradient-to-br from-cyan-50 via-sky-50 to-violet-50'}`}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-brand-900">Record with your microphone</p>
@@ -303,7 +303,7 @@ export default function VoiceProfilesPage() {
               </div>
               <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-lg shadow-sm ${isRecording ? 'animate-pulse bg-danger text-white' : 'bg-gradient-to-br from-brand-600 to-violet-500 text-white'}`}>🎙️</span>
             </div>
-            <div className="mt-4 flex min-h-12 items-center justify-center rounded-xl bg-white/70 px-3">
+            <div className="voice-recorder-status mt-4 flex min-h-12 items-center justify-center rounded-xl bg-white/70 px-3">
               {isRecording ? <RecordingWave /> : <p className="text-xs font-medium text-brand-600">Ready to capture a story</p>}
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -312,7 +312,7 @@ export default function VoiceProfilesPage() {
               {isRecording && <span className="text-sm font-semibold text-danger" aria-live="polite">Recording now…</span>}
               {creating && <span className="text-sm text-muted" aria-live="polite">Uploading and cloning your voice…</span>}
             </div>
-            {recordingUrl && <div className="mt-3 rounded-xl bg-white/70 p-3"><div className="mb-2 flex items-center gap-2 text-xs font-semibold text-violet-700"><span>✨</span> Listen back before sharing</div><PlaybackWave /><audio key={recordingUrl} className="vibrant-audio-player w-full" controls preload="metadata" src={recordingUrl} onEnded={() => setRecordingUrl(null)} onError={() => setCreateError('This recording could not be played. Please record it again.')}>Your browser cannot play this recording.</audio></div>}
+            {recordingUrl && <div className="voice-recording-preview mt-3 rounded-xl bg-white/70 p-3"><div className="mb-2 flex items-center gap-2 text-xs font-semibold text-violet-700"><span>✨</span> Listen back before sharing</div><PlaybackWave /><audio key={recordingUrl} className="vibrant-audio-player w-full" controls preload="metadata" src={recordingUrl} onEnded={() => setRecordingUrl(null)} onError={() => setCreateError('This recording could not be played. Please record it again.')}>Your browser cannot play this recording.</audio></div>}
           </div>
           <label className="block">
             <span className="text-sm font-semibold text-brand-900">Or upload an existing recording</span>
