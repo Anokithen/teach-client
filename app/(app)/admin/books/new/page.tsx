@@ -23,6 +23,7 @@ export default function NewBookPage() {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [illustrationFiles, setIllustrationFiles] = useState<File[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [mediaInputKey, setMediaInputKey] = useState(0);
   const [aiModels, setAiModels] = useState<AiModel[]>([]);
   const [selectedAiModel, setSelectedAiModel] = useState('');
@@ -89,11 +90,28 @@ export default function NewBookPage() {
     setCreatedBookId(null);
     setLoading(true);
     try {
-      const cover_image_url = coverFile ? await uploadMedia(coverFile, 'image') : form.cover_image_url;
-      const image_urls = illustrationFiles.length
-        ? await Promise.all(illustrationFiles.map((file) => uploadMedia(file, 'image')))
-        : [];
-      const video_url = videoFile ? await uploadMedia(videoFile, 'video') : form.video_url;
+      // Upload each asset in sequence. Cloudinary and the API endpoint each
+      // receive one file per request, and sequential uploads avoid making all
+      // selected illustrations compete for the same connection at once.
+      let cover_image_url = form.cover_image_url;
+      if (coverFile) {
+        setUploadStatus('Uploading cover image…');
+        cover_image_url = await uploadMedia(coverFile, 'image');
+      }
+
+      const image_urls: string[] = [];
+      for (const [index, file] of illustrationFiles.entries()) {
+        setUploadStatus(`Uploading illustration ${index + 1} of ${illustrationFiles.length}…`);
+        image_urls.push(await uploadMedia(file, 'image'));
+      }
+
+      let video_url = form.video_url;
+      if (videoFile) {
+        setUploadStatus('Uploading video…');
+        video_url = await uploadMedia(videoFile, 'video');
+      }
+
+      setUploadStatus('Saving book and creating games…');
       const res = await adminApi.createBook({ ...form, cover_image_url, image_urls, video_url });
       setCreatedBookId(res.data.book.id);
       setForm({ title: '', age_group: '3-5', reading_level: 'beginner', text_content: '', content_url: '', cover_image_url: '', video_url: '' });
@@ -106,6 +124,7 @@ export default function NewBookPage() {
       setError(apiErr.fields?.length ? apiErr.fields : apiErr.message);
     } finally {
       setLoading(false);
+      setUploadStatus(null);
     }
   }
 
@@ -153,6 +172,7 @@ export default function NewBookPage() {
           </div>
           <Input label="Reading resource URL (optional)" type="url" value={form.content_url} onChange={(e) => setForm({ ...form, content_url: e.target.value })} />
           <Alert>{error}</Alert>
+          {uploadStatus && <p className="text-sm font-medium text-brand-700" role="status">{uploadStatus}</p>}
           {createdBookId && <Alert tone="success">Book and its three mini-games are ready. <Link className="font-medium underline" href={`/books/${createdBookId}`}>Open book</Link></Alert>}
           <Button type="submit" loading={loading} className="w-full">Create book and games</Button>
         </form>
