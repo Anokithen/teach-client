@@ -11,7 +11,7 @@
     @apply bg-bg text-brand-900 antialiased;
     position: relative;
     background-image: radial-gradient(circle at 8% 4%, rgba(84, 172, 191, .25), transparent 26rem), radial-gradient(circle at 92% 12%, rgba(91, 93, 212, .14), transparent 24rem), radial-gradient(circle at 50% 100%, rgba(224, 164, 56, .12), transparent 30rem);
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   body::before { content: '✦'; pointer-events: none; position: fixed; z-index: 0; right: 1.4rem; bottom: 1.4rem; color: #E0A438; font-size: 1.35rem; opacity: .34; text-shadow: -77vw -72vh 0 rgba(84,172,191,.45), -28vw -8vh 0 rgba(139,92,246,.28), -62vw 36vh 0 rgba(224,164,56,.25); animation: page-star-float 6s ease-in-out infinite; }

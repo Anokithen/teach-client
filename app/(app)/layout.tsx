@@ -1,6 +1,7 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
@@ -11,7 +12,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <AuthGuard>
-      <div className="app-shell flex min-h-screen min-w-0 overflow-x-hidden bg-bg">
+      <div className="app-shell flex min-h-screen min-w-0 overflow-x-clip bg-bg">
         <Sidebar open={sidebarOpen} collapsed={sidebarCollapsed} onClose={() => setSidebarOpen(false)} />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar
@@ -19,7 +20,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             sidebarCollapsed={sidebarCollapsed}
             onSidebarToggle={() => setSidebarCollapsed((value) => !value)}
           />
-          <main className="min-w-0 flex-1 bg-bg/95 px-3 pb-5 pt-16 sm:px-4 sm:pb-6 lg:px-8 lg:pb-8">
+          <main className="min-w-0 flex-1 bg-bg/95 px-3 py-5 sm:px-4 sm:py-6 lg:px-8 lg:py-8">
             <div className="mx-auto max-w-6xl">{children}</div>
           </main>
         </div>

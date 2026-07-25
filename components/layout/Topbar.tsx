@@ -16,7 +16,7 @@ export function Topbar({ onMenuClick, sidebarCollapsed, onSidebarToggle }: Topba
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className={`fixed inset-x-0 top-0 z-30 flex min-w-0 items-center justify-between gap-2 border-b border-white/10 bg-brand-900/95 px-3 py-3 text-white backdrop-blur sm:px-4 lg:px-8 ${sidebarCollapsed ? 'lg:left-0' : 'lg:left-64'}`}>
+    <header className="sticky top-0 z-30 flex w-full min-w-0 shrink-0 items-center justify-between gap-2 border-b border-white/10 bg-brand-900/95 px-3 py-3 text-white backdrop-blur sm:px-4 lg:px-8">
       <div className="flex min-w-0 items-center gap-1.5 lg:hidden">
         <button
           type="button"
