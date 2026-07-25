@@ -26,6 +26,8 @@ interface BookForm {
   video_url: string;
 }
 
+const MAX_ILLUSTRATIONS = 8;
+
 function formFromBook(book: Book): BookForm {
   return {
     title: book.title || '',
@@ -41,13 +43,18 @@ function formFromBook(book: Book): BookForm {
 
 export function BookEditModal({ book, open, onClose, onUpdated }: BookEditModalProps) {
   const [form, setForm] = useState<BookForm>(() => formFromBook(book));
+  const [illustrationFiles, setIllustrationFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | string[] | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+  const [mediaInputKey, setMediaInputKey] = useState(0);
 
   useEffect(() => {
     if (open) {
       setForm(formFromBook(book));
+      setIllustrationFiles([]);
       setError(null);
+      setUploadStatus(null);
     }
   }, [book, open]);
 
@@ -62,6 +69,23 @@ export function BookEditModal({ book, open, onClose, onUpdated }: BookEditModalP
     setError(null);
     setSaving(true);
     try {
+      const imageUrls = form.image_urls
+        .split(/\r?\n/)
+        .map((url) => url.trim())
+        .filter(Boolean);
+      if (imageUrls.length + illustrationFiles.length > MAX_ILLUSTRATIONS) {
+        setError(`A book can have up to ${MAX_ILLUSTRATIONS} illustrations.`);
+        setSaving(false);
+        return;
+      }
+      for (const [index, file] of illustrationFiles.entries()) {
+        setUploadStatus(`Uploading illustration ${index + 1} of ${illustrationFiles.length}…`);
+        const media = new FormData();
+        media.append('file', file);
+        media.append('media_type', 'image');
+        const uploadResponse = await adminApi.uploadBookMedia(media);
+        imageUrls.push(uploadResponse.data.url as string);
+      }
       const response = await adminApi.updateBook(book.id, {
         title: form.title.trim(),
         age_group: form.age_group.trim(),
@@ -69,19 +93,19 @@ export function BookEditModal({ book, open, onClose, onUpdated }: BookEditModalP
         text_content: form.text_content,
         content_url: form.content_url.trim(),
         cover_image_url: form.cover_image_url.trim(),
-        image_urls: form.image_urls
-          .split(/\r?\n/)
-          .map((url) => url.trim())
-          .filter(Boolean),
+        image_urls: imageUrls,
         video_url: form.video_url.trim(),
       });
       onUpdated(response.data.book as Book);
+      setIllustrationFiles([]);
+      setMediaInputKey((value) => value + 1);
       onClose();
     } catch (err) {
       const apiError = err as ApiErrorShape;
       setError(apiError.fields?.length ? apiError.fields : apiError.message);
     } finally {
       setSaving(false);
+      setUploadStatus(null);
     }
   }
 
@@ -134,6 +158,24 @@ export function BookEditModal({ book, open, onClose, onUpdated }: BookEditModalP
           value={form.image_urls}
           onChange={(event) => setForm({ ...form, image_urls: event.target.value })}
         />
+        <div>
+          <label htmlFor="book-illustrations" className="label">Add illustration images</label>
+          <input
+            id="book-illustrations"
+            key={mediaInputKey}
+            className="input"
+            type="file"
+            multiple
+            accept="image/jpeg,image/png,image/webp"
+            onChange={(event) => setIllustrationFiles(Array.from(event.target.files || []))}
+          />
+          <p className="mt-1 text-xs text-muted">Select multiple JPG, PNG, or WebP files. They will be added to the existing illustrations when you save.</p>
+          {illustrationFiles.length > 0 && (
+            <p className="mt-1 text-xs font-medium text-brand-700" role="status">
+              {illustrationFiles.length} new illustration{illustrationFiles.length === 1 ? '' : 's'} selected.
+            </p>
+          )}
+        </div>
         <Input
           label="Video URL (optional)"
           type="url"
@@ -141,6 +183,7 @@ export function BookEditModal({ book, open, onClose, onUpdated }: BookEditModalP
           onChange={(event) => setForm({ ...form, video_url: event.target.value })}
         />
         <Alert>{error}</Alert>
+        {uploadStatus && <p className="text-sm font-medium text-brand-700" role="status">{uploadStatus}</p>}
         <div className="flex flex-col-reverse justify-end gap-3 pt-1 sm:flex-row">
           <Button type="button" variant="ghost" onClick={close} disabled={saving}>
             Cancel
