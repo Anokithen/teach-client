@@ -30,7 +30,7 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
       <div
-        className="absolute inset-0 bg-brand-900/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-brand-900/40 backdrop-blur-sm motion-safe:animate-[modal-backdrop-in_.18s_ease-out]"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -38,7 +38,7 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
-        className="card relative max-h-[min(90vh,44rem)] w-full max-w-md overflow-y-auto rounded-b-none p-5 sm:rounded-2xl sm:p-6"
+        className="card relative max-h-[min(90vh,44rem)] w-full max-w-md overflow-y-auto rounded-b-none p-5 motion-safe:animate-[modal-card-in_.22s_cubic-bezier(.2,.8,.2,1)] sm:rounded-2xl sm:p-6"
       >
         <button
           type="button"

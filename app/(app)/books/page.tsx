@@ -92,7 +92,7 @@ export default function BooksPage() {
               <Link
                 key={book.id}
                 href={`/books/${book.id}`}
-                className="sparkle-book-card card relative block overflow-hidden p-5 transition-shadow hover:shadow-md"
+                className="sparkle-book-card card relative block overflow-hidden p-5 transition-all hover:-translate-y-1 hover:shadow-md"
               >
                 {book.cover_image_url && (
                   // External admin-provided image URLs cannot be allowlisted at build time for next/image.

@@ -30,7 +30,7 @@ export function Button({
     <button
       type={type}
       disabled={disabled || loading}
-      className={`${VARIANTS[variant]} ${className}`}
+      className={`${VARIANTS[variant]} active:scale-[.98] ${className}`}
       {...props}
     >
       {loading && <Spinner size={16} light={variant === 'primary' || variant === 'danger'} />}

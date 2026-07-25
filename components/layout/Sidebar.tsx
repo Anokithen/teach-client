@@ -35,7 +35,7 @@ export function Sidebar({ open, collapsed, onClose }: SidebarProps) {
         <div className="mb-8 px-1">
           <div className="flex items-center justify-between gap-2">
             <Logo />
-            <button type="button" onClick={onClose} className="rounded-lg p-2 text-cyan-100 hover:bg-white/10 lg:hidden" aria-label="Close menu">
+            <button type="button" onClick={onClose} className="rounded-lg p-2 text-cyan-100 transition-transform hover:bg-white/10 active:scale-90 lg:hidden" aria-label="Close menu">
               <span aria-hidden="true" className="text-xl leading-none">×</span>
             </button>
           </div>
@@ -50,7 +50,7 @@ export function Sidebar({ open, collapsed, onClose }: SidebarProps) {
                 onClick={onClose}
                 title={collapsed ? item.label : undefined}
                 aria-label={collapsed ? item.label : undefined}
-                className={`rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${collapsed ? 'lg:flex lg:justify-center' : ''} ${
+                className={`rounded-xl px-3 py-2.5 text-sm font-medium transition-all hover:translate-x-0.5 ${collapsed ? 'lg:flex lg:justify-center' : ''} ${
                   active
                     ? 'bg-white/18 text-white shadow-lg'
                     : 'text-blue-100 hover:bg-white/10'

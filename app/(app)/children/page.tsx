@@ -71,7 +71,7 @@ export default function ChildrenPage() {
               <Link
                 key={child.id}
                 href={`/children/${child.id}`}
-                className="card block p-5 transition-shadow hover:shadow-md"
+                className="card block p-5 transition-all hover:-translate-y-1 hover:shadow-md"
               >
                 <div className="mb-3 flex items-start justify-between">
                   <h3 className="text-base font-semibold text-brand-900">{child.name}</h3>

@@ -124,7 +124,7 @@ export default function DashboardPage() {
 
 function DashboardLink({ href, title, body }: { href: string; title: string; body: string }) {
   return (
-    <Link href={href} className="card block p-5 transition-shadow hover:shadow-md">
+    <Link href={href} className="card block p-5 transition-all hover:-translate-y-1 hover:shadow-md">
       <h3 className="mb-1 text-sm font-semibold text-brand-900">{title}</h3>
       <p className="text-sm text-muted">{body}</p>
     </Link>

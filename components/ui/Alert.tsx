@@ -16,7 +16,7 @@ interface AlertProps {
 export function Alert({ tone = 'danger', children }: AlertProps) {
   if (!children) return null;
   return (
-    <div className={`rounded-xl border px-4 py-3 text-sm ${TONES[tone]}`}>
+    <div className={`rounded-xl border px-4 py-3 text-sm motion-safe:animate-[fade-slide-in_.2s_ease-out] ${TONES[tone]}`}>
       {Array.isArray(children) ? (
         <ul className="list-inside list-disc space-y-0.5">
           {children.map((c, i) => (
