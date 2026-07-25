@@ -3,7 +3,8 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { bookNarrationsApi, booksApi, childrenApi, voiceProfilesApi, sessionsApi } from '@/lib/endpoints';
+import { adminApi, bookNarrationsApi, booksApi, childrenApi, voiceProfilesApi, sessionsApi } from '@/lib/endpoints';
+import { useAuth } from '@/lib/auth-context';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { Badge } from '@/components/ui/Badge';
@@ -12,6 +13,8 @@ import { Alert } from '@/components/ui/Alert';
 import { Select } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ChildPinModal } from '@/components/children/ChildPinModal';
+import { BookEditModal } from '@/components/books/BookEditModal';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ApiErrorShape, Book, BookNarration, Child, MiniGame, VoiceProfile } from '@/lib/types';
 
 const GAME_DETAILS: Record<string, { icon: string; goal: string; description: string }> = {
@@ -23,6 +26,7 @@ const GAME_DETAILS: Record<string, { icon: string; goal: string; description: st
 export default function BookDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { isAdmin } = useAuth();
 
   const [book, setBook] = useState<Book | null>(null);
   const [miniGames, setMiniGames] = useState<MiniGame[] | null>(null);
@@ -41,6 +45,10 @@ export default function BookDetailPage() {
   const [narrationError, setNarrationError] = useState<string | null>(null);
   const [narrationAudioUrl, setNarrationAudioUrl] = useState<string | null>(null);
   const [imageIndex, setImageIndex] = useState(0);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [actionError, setActionError] = useState<string | string[] | null>(null);
   const narrationAudio = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -128,6 +136,20 @@ export default function BookDetailPage() {
     }
   }
 
+  async function deleteBook() {
+    setActionError(null);
+    setDeleting(true);
+    try {
+      await adminApi.deleteBook(id);
+      router.push('/books');
+    } catch (err) {
+      const apiError = err as ApiErrorShape;
+      setActionError(apiError.fields?.length ? apiError.fields : apiError.message);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   async function onStartSession(e: FormEvent) {
     e.preventDefault();
     setStartError(null);
@@ -181,12 +203,22 @@ export default function BookDetailPage() {
       </Link>
 
       <div className="mt-4 flex flex-wrap items-start justify-between gap-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-brand-900">{book.title}</h1>
+        <div className="min-w-0 flex-1">
+          <h1 className="break-words text-2xl font-semibold text-brand-900">{book.title}</h1>
           <div className="mt-2 flex gap-2">
             <Badge tone="brand">{book.age_group}</Badge>
             <Badge tone="neutral">{book.reading_level}</Badge>
           </div>
+          {isAdmin && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button type="button" variant="secondary" onClick={() => setEditOpen(true)}>
+                Edit book
+              </Button>
+              <Button type="button" variant="danger" onClick={() => setDeleteOpen(true)}>
+                Delete book
+              </Button>
+            </div>
+          )}
         </div>
         {storyImages.length > 0 && (
           <div className="w-full max-w-sm sm:w-72">
@@ -204,6 +236,12 @@ export default function BookDetailPage() {
           </div>
         )}
       </div>
+
+      {actionError && (
+        <div className="mt-4">
+          <Alert>{actionError}</Alert>
+        </div>
+      )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
@@ -301,6 +339,25 @@ export default function BookDetailPage() {
         )}
       </div>
       <ChildPinModal child={pendingChild} onClose={() => setPendingChild(null)} onVerified={(child) => setChildId(String(child.id))} />
+      {isAdmin && (
+        <>
+          <BookEditModal
+            book={book}
+            open={editOpen}
+            onClose={() => setEditOpen(false)}
+            onUpdated={(updatedBook) => setBook(updatedBook)}
+          />
+          <ConfirmDialog
+            open={deleteOpen}
+            onClose={() => setDeleteOpen(false)}
+            onConfirm={deleteBook}
+            loading={deleting}
+            title={`Delete ${book.title}?`}
+            description="This permanently removes the book and its linked mini-games. This action cannot be undone."
+            confirmLabel="Delete book"
+          />
+        </>
+      )}
     </div>
   );
 }

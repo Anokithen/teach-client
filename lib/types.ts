@@ -38,6 +38,7 @@ export interface Book {
   age_group: string;
   reading_level: ReadingLevel;
   text_content?: string;
+  content_url?: string;
   cover_image_url?: string;
   image_urls?: string[];
   video_url?: string;

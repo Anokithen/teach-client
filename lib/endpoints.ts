@@ -126,6 +126,17 @@ export const adminApi = {
     image_urls?: string[];
     video_url?: string;
   }) => api.post('/api/admin/books', payload),
+  updateBook: (id: number | string, payload: {
+    title: string;
+    age_group: string;
+    reading_level: 'beginner' | 'intermediate' | 'advanced';
+    text_content?: string;
+    content_url?: string;
+    cover_image_url?: string;
+    image_urls?: string[];
+    video_url?: string;
+  }) => api.patch(`/api/admin/books/${id}`, payload),
+  deleteBook: (id: number | string) => api.delete(`/api/admin/books/${id}`),
   generateBookDraft: (payload: { age_group: string; reading_level: ReadingLevel; idea: string; model?: string }) =>
     api.post('/api/admin/book-draft', payload),
   uploadBookMedia: (media: FormData) =>
