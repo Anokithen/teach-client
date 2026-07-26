@@ -27,7 +27,7 @@ export default function ReadingSessionPage() {
 
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const [sentenceIndex, setSentenceIndex] = useState(0);
+  const [paragraphIndex, setParagraphIndex] = useState(0);
   const [transcript, setTranscript] = useState('');
   const [listening, setListening] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
@@ -43,9 +43,9 @@ export default function ReadingSessionPage() {
   const [imageIndex, setImageIndex] = useState(0);
   const narrationAudio = useRef<HTMLAudioElement>(null);
 
-  const sentences = (book?.text_content || '')
-    .split(/(?<=[.!?])\s+|\n+/)
-    .map((sentence) => sentence.trim())
+  const paragraphs = (book?.text_content || '')
+    .split(/\n\s*\n+/)
+    .map((paragraph) => paragraph.trim())
     .filter(Boolean);
   const storyImages = [book?.cover_image_url, ...(book?.image_urls || [])].filter(Boolean) as string[];
 
@@ -185,7 +185,6 @@ export default function ReadingSessionPage() {
             return;
           }
           form.append('audio', recordingFile);
-          form.append('sentence_index', String(sentenceIndex));
           const response = await sessionsApi.transcribePronunciation(id, form);
           const spoken = response.data.transcript as string;
           setTranscript(spoken || '');
@@ -209,14 +208,14 @@ export default function ReadingSessionPage() {
 
   async function checkPronunciation() {
     if (!transcript.trim()) {
-      setPronunciationError('Read the sentence aloud first, then check your pronunciation.');
+      setPronunciationError('Read the paragraph aloud first, then check your pronunciation.');
       return;
     }
     setChecking(true);
     setPronunciationError(null);
     setPronunciationResult(null);
     try {
-      const res = await sessionsApi.checkPronunciation(id, { sentence_index: sentenceIndex, transcript });
+      const res = await sessionsApi.checkPronunciation(id, { paragraph_index: paragraphIndex, transcript });
       setPronunciationResult(res.data);
       load();
     } catch (err) {
@@ -334,35 +333,35 @@ export default function ReadingSessionPage() {
         <Card className="overflow-hidden">
           <div className="relative mb-5 overflow-hidden rounded-2xl bg-brand-400/10 p-5">
             <h2 className="relative text-lg font-semibold text-brand-900">Read aloud for points</h2>
-            <p className="relative mt-1 text-sm text-muted">Press the friendly microphone, read with confidence, then see how you did.</p>
+            <p className="relative mt-1 text-sm text-muted">Read the paragraph aloud into the microphone, then check your pronunciation and earn points.</p>
           </div>
-          {sentences.length === 0 ? (
+          {paragraphs.length === 0 ? (
             <EmptyState title="This book has no text to read aloud yet" />
           ) : (
             <div className="space-y-4">
               <Select
-                label="Sentence"
-                value={String(sentenceIndex)}
+                label="Paragraph"
+                value={String(paragraphIndex)}
                 onChange={(e) => {
-                  setSentenceIndex(Number(e.target.value));
+                  setParagraphIndex(Number(e.target.value));
                   setTranscript('');
                   setPronunciationResult(null);
                 }}
                 disabled={session.is_complete}
               >
-                {sentences.map((_, index) => (
-                  <option key={index} value={index}>Sentence {index + 1}</option>
+                {paragraphs.map((_, index) => (
+                  <option key={index} value={index}>Paragraph {index + 1}</option>
                 ))}
               </Select>
               <p className="rounded-xl border border-brand-400/30 bg-brand-400/10 p-4 text-base leading-relaxed text-brand-900">
-                {sentences[sentenceIndex]}
+                {paragraphs[paragraphIndex]}
               </p>
               <div className="flex flex-col items-center gap-3 py-2 text-center">
                 <button type="button" aria-label={listening ? 'Stop recording' : 'Start recording'} onClick={listening ? stopListening : startListening} disabled={session.is_complete || transcribing} className={`mic-orb ${listening ? 'is-listening' : ''} disabled:opacity-50`}>
                   <span className="text-3xl" aria-hidden="true">{listening ? '◼' : '🎙'}</span>
                 </button>
                 <p className="text-sm font-medium text-brand-900">{listening ? 'Listening… tap to finish' : transcribing ? 'Listening back to your words…' : 'Tap the microphone to read'}</p>
-                <p className="text-xs text-muted">Correct readings earn 10 leaderboard points, once per sentence.</p>
+                <p className="text-xs text-muted">Earn up to 50 leaderboard points based on your accuracy, once per paragraph.</p>
               </div>
               <div className="flex flex-wrap justify-center gap-3">
                 <Button
@@ -402,7 +401,7 @@ export default function ReadingSessionPage() {
                 <li key={i} className="text-sm text-brand-900">
                   {entry.type === 'pronunciation_check' && (
                     <>
-                      <span className="font-medium">Sentence {Number(entry.sentence_index) + 1}</span>
+                      <span className="font-medium">Paragraph {Number(entry.paragraph_index ?? entry.sentence_index) + 1}</span>
                       <span className="ml-2 text-muted">{entry.accuracy}% accuracy</span>
                       {Number(entry.awarded_points) > 0 && <span className="ml-2 font-medium text-success">+{String(entry.awarded_points)} points</span>}
                     </>
