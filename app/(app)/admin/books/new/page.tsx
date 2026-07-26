@@ -131,15 +131,20 @@ export default function NewBookPage() {
         image_urls.push(await uploadMedia(file, 'image'));
       }
 
-      let video_url = form.video_url;
+      setUploadStatus('Saving book and creating games…');
+      const res = await adminApi.createBook({
+        ...form,
+        cover_image_url,
+        image_urls,
+        video_url: form.video_url,
+      });
+      setCreatedBookId(res.data.book.id);
       if (videoFile) {
         setUploadStatus('Uploading video…');
-        video_url = await uploadMedia(videoFile, 'video');
+        const video = new FormData();
+        video.append('file', videoFile);
+        await adminApi.uploadBookVideo(res.data.book.id, video);
       }
-
-      setUploadStatus('Saving book and creating games…');
-      const res = await adminApi.createBook({ ...form, cover_image_url, image_urls, video_url });
-      setCreatedBookId(res.data.book.id);
       setForm({ title: '', age_group: '3-5', reading_level: 'beginner', text_content: '', content_url: '', cover_image_url: '', video_url: '' });
       setCoverFile(null);
       setIllustrationFiles([]);

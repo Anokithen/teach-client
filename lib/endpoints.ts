@@ -147,4 +147,6 @@ export const adminApi = {
     api.post('/api/admin/book-draft', payload),
   uploadBookMedia: (media: FormData) =>
     api.post('/api/admin/book-media', media, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  uploadBookVideo: (id: number | string, media: FormData) =>
+    api.post(`/api/admin/books/${id}/videos`, media, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };
