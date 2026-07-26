@@ -246,7 +246,7 @@ export default function BookDetailPage() {
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <h2 className="mb-3 text-sm font-semibold text-brand-900">Preview</h2>
-          <p className="whitespace-pre-line text-sm leading-relaxed text-brand-600 dark:text-white">
+          <p className="whitespace-pre-line text-sm leading-relaxed text-[#154767] dark:text-[#65adb2]">
             {book.text_content || 'No preview text available for this book.'}
           </p>
           <div className="mt-6 rounded-2xl border border-violet-300 bg-violet-50/60 p-4">
