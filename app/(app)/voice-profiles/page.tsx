@@ -129,6 +129,7 @@ export default function VoiceProfilesPage() {
   function onFileChange(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] || null;
     setCreateError(null);
+    if (recordingUrl) setRecordingUrl(null);
     if (!selected) return setFile(null);
     if (!isAllowedUploadFile(selected, 'audio')) {
       setFile(null);
@@ -140,6 +141,13 @@ export default function VoiceProfilesPage() {
       return setCreateError('The recording must be smaller than 25 MB.');
     }
     setFile(selected);
+  }
+
+  function discardPendingRecording() {
+    setRecordingUrl(null);
+    setFile(null);
+    setCreateError(null);
+    if (fileInput.current) fileInput.current.value = '';
   }
 
   async function uploadRecording(recording: File) {
@@ -205,7 +213,7 @@ export default function VoiceProfilesPage() {
           setRecordingUrl(URL.createObjectURL(wavBlob));
           setFile(recordedFile);
           if (fileInput.current) fileInput.current.value = '';
-          void uploadRecording(recordedFile);
+          setCreateError(null);
         } catch {
           setCreateError('Could not convert the recording to WAV. Please try again or choose an audio file instead.');
         }
@@ -303,7 +311,7 @@ export default function VoiceProfilesPage() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-brand-900">Record with your microphone</p>
-              <p className="mt-1 text-xs text-muted">When you stop, the recording is converted to WAV, stored privately, and cloned by ElevenLabs.</p>
+              <p className="mt-1 text-xs text-muted">When you stop, the recording is converted to WAV and held here for review. It uploads only after you confirm.</p>
               </div>
               <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-lg shadow-sm ${isRecording ? 'animate-pulse bg-danger text-white' : 'bg-gradient-to-br from-brand-600 to-violet-500 text-white'}`}>🎙️</span>
             </div>
@@ -312,11 +320,11 @@ export default function VoiceProfilesPage() {
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-3">
               {!isRecording ? <button type="button" onClick={startRecording} disabled={creating} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 via-cyan-500 to-violet-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"><span>●</span> Start recording</button> :
-                <Button type="button" variant="danger" onClick={stopRecording}>■ Stop &amp; save</Button>}
+                <Button type="button" variant="danger" onClick={stopRecording}>■ Stop &amp; review</Button>}
               {isRecording && <span className="text-sm font-semibold text-danger" aria-live="polite">Recording now…</span>}
               {creating && <span className="text-sm text-muted" aria-live="polite">Uploading and cloning your voice…</span>}
             </div>
-            {recordingUrl && <div className="voice-recording-preview mt-3 rounded-xl bg-white/70 p-3"><div className="mb-2 flex items-center gap-2 text-xs font-semibold text-violet-700"><span>✨</span> Listen back before sharing</div><PlaybackWave /><audio key={recordingUrl} className="vibrant-audio-player w-full" controls preload="metadata" src={recordingUrl} onEnded={() => setRecordingUrl(null)} onError={() => setCreateError('This recording could not be played. Please record it again.')}>Your browser cannot play this recording.</audio></div>}
+            {recordingUrl && <div className="voice-recording-preview mt-3 rounded-xl bg-white/70 p-3"><div className="mb-2 flex items-center gap-2 text-xs font-semibold text-violet-700"><span>✨</span> Review before uploading</div><PlaybackWave /><audio key={recordingUrl} className="vibrant-audio-player w-full" controls preload="metadata" src={recordingUrl} onEnded={() => setRecordingUrl(null)} onError={() => setCreateError('This recording could not be played. Please record it again.')}>Your browser cannot play this recording.</audio><Button type="button" variant="ghost" onClick={discardPendingRecording} className="mt-2 min-h-0 px-0 py-1 text-xs text-danger">Delete this recording</Button></div>}
           </div>
           <label className="block">
             <span className="text-sm font-semibold text-brand-900">Or upload an existing recording</span>
@@ -327,7 +335,7 @@ export default function VoiceProfilesPage() {
             </span>
           </label>
           <p className="-mt-2 text-xs text-muted">MP3, WAV, WebM, OGG, or M4A/MP4, smaller than 25 MB. Upload only a voice you have permission to use.</p>
-          <Alert>{createError}</Alert><Button type="submit" loading={creating} disabled={!file || isRecording} className="w-full">Create voice clone</Button>
+          <Alert>{createError}</Alert><Button type="submit" loading={creating} disabled={!file || isRecording} className="w-full">Accept &amp; create voice clone</Button>
         </form>
       </Card>
       }
