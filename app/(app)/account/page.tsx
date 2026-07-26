@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useRef, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { accountApi } from '@/lib/endpoints';
 import { clearTokens } from '@/lib/api';
@@ -12,6 +12,7 @@ import { Alert } from '@/components/ui/Alert';
 import { Badge } from '@/components/ui/Badge';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ApiErrorShape } from '@/lib/types';
+import { isAllowedUploadFile, uploadFormatError } from '@/lib/file-validation';
 
 interface AccountForm {
   name: string;
@@ -31,6 +32,8 @@ export default function AccountPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | string[] | null>(null);
   const [saved, setSaved] = useState(false);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const profileImageInput = useRef<HTMLInputElement>(null);
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -44,12 +47,47 @@ export default function AccountPage() {
       const payload: { name: string; email: string; password?: string } = { name: form.name, email: form.email };
       if (form.password) payload.password = form.password;
       await accountApi.update(payload);
+      if (profileImageFile) {
+        const image = new FormData();
+        image.append('profile_image', profileImageFile);
+        await accountApi.uploadProfileImage(image);
+        setProfileImageFile(null);
+        if (profileImageInput.current) profileImageInput.current.value = '';
+      }
       await refreshAccount();
       setForm((f) => ({ ...f, password: '' }));
       setSaved(true);
     } catch (err) {
       const apiErr = err as ApiErrorShape;
       setSaveError(apiErr.fields?.length ? apiErr.fields : apiErr.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function onProfileImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] || null;
+    setSaveError(null);
+    if (!file) return setProfileImageFile(null);
+    if (!isAllowedUploadFile(file, 'image')) {
+      event.target.value = '';
+      setProfileImageFile(null);
+      setSaveError(uploadFormatError('image'));
+      return;
+    }
+    setProfileImageFile(file);
+  }
+
+  async function removeProfileImage() {
+    setSaveError(null);
+    setSaving(true);
+    try {
+      await accountApi.removeProfileImage();
+      setProfileImageFile(null);
+      if (profileImageInput.current) profileImageInput.current.value = '';
+      await refreshAccount();
+    } catch (err) {
+      setSaveError((err as ApiErrorShape).message);
     } finally {
       setSaving(false);
     }
@@ -84,6 +122,22 @@ export default function AccountPage() {
 
       <Card className="mt-6">
         <form onSubmit={onSave} className="space-y-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-brand-400 bg-brand-400/10 text-2xl font-bold text-brand-600">
+              {account.profile_image_url ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={account.profile_image_url} alt={`${account.name}'s profile`} className="h-full w-full object-cover" />
+                </>
+              ) : account.name[0]?.toUpperCase() || '?'}
+            </div>
+            <div>
+              <label htmlFor="account-profile-image" className="label">Profile picture (optional)</label>
+              <input ref={profileImageInput} id="account-profile-image" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" onChange={onProfileImageChange} className="input" />
+              <p className="mt-1 text-xs text-muted">JPG, PNG, or WebP only.</p>
+              {account.profile_image_url && <Button type="button" variant="ghost" onClick={removeProfileImage} disabled={saving} className="mt-1 min-h-0 px-0 py-1 text-xs">Remove picture</Button>}
+            </div>
+          </div>
           <Input
             label="Name"
             required

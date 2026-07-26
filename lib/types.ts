@@ -12,6 +12,7 @@ export interface Account {
   role: Role;
   created_at: string;
   is_banned?: boolean;
+  profile_image_url?: string | null;
   children_count?: number;
 }
 
@@ -25,6 +26,7 @@ export interface Child {
   name: string;
   age: number;
   gender: ChildGender;
+  profile_image_url?: string | null;
   reading_level: ReadingLevel;
   content_url?: string;
   parent_id?: number;

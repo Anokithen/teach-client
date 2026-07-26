@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { childrenApi } from '@/lib/endpoints';
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ApiErrorShape, Child, GameResult, LeaderboardEntry, ReadingSession } from '@/lib/types';
+import { isAllowedUploadFile, uploadFormatError } from '@/lib/file-validation';
 
 interface EditForm {
   name: string;
@@ -41,6 +42,8 @@ export default function ChildDetailPage() {
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState<string | null>(null);
   const [unlocking, setUnlocking] = useState(false);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const profileImageInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     prepareProfile();
@@ -105,11 +108,48 @@ export default function ChildDetailPage() {
       };
       if (form.child_pin) payload.child_pin = form.child_pin;
       const res = await childrenApi.update(id, payload);
-      setChild(res.data.child);
+      let updatedChild = res.data.child as Child;
+      if (profileImageFile) {
+        const image = new FormData();
+        image.append('profile_image', profileImageFile);
+        const imageResponse = await childrenApi.uploadProfileImage(id, image);
+        updatedChild = imageResponse.data.child as Child;
+        setProfileImageFile(null);
+        if (profileImageInput.current) profileImageInput.current.value = '';
+      }
+      setChild(updatedChild);
       setEditing(false);
     } catch (err) {
       const apiErr = err as ApiErrorShape;
       setSaveError(apiErr.fields?.length ? apiErr.fields : apiErr.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function onProfileImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] || null;
+    setSaveError(null);
+    if (!file) return setProfileImageFile(null);
+    if (!isAllowedUploadFile(file, 'image')) {
+      event.target.value = '';
+      setProfileImageFile(null);
+      setSaveError(uploadFormatError('image'));
+      return;
+    }
+    setProfileImageFile(file);
+  }
+
+  async function removeProfileImage() {
+    setSaveError(null);
+    setSaving(true);
+    try {
+      const response = await childrenApi.removeProfileImage(id);
+      setChild(response.data.child as Child);
+      setProfileImageFile(null);
+      if (profileImageInput.current) profileImageInput.current.value = '';
+    } catch (err) {
+      setSaveError((err as ApiErrorShape).message);
     } finally {
       setSaving(false);
     }
@@ -175,11 +215,21 @@ export default function ChildDetailPage() {
       </Link>
 
       <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-brand-900">{child.name}</h1>
-          <div className="mt-2 flex items-center gap-2">
-            <Badge tone="brand">{child.reading_level}</Badge>
-            <span className="text-sm text-muted">Age {child.age}</span>
+        <div className="flex items-center gap-3">
+          <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-brand-400 bg-brand-400/10 text-xl font-bold text-brand-600">
+            {child.profile_image_url ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={child.profile_image_url} alt={`${child.name}'s profile`} className="h-full w-full object-cover" />
+              </>
+            ) : child.name[0]?.toUpperCase() || '?'}
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold text-brand-900">{child.name}</h1>
+            <div className="mt-2 flex items-center gap-2">
+              <Badge tone="brand">{child.reading_level}</Badge>
+              <span className="text-sm text-muted">Age {child.age}</span>
+            </div>
           </div>
         </div>
         <div className="flex gap-3">
@@ -223,6 +273,12 @@ export default function ChildDetailPage() {
               onChange={(e) => setForm({ ...form, child_pin: e.target.value.replace(/\D/g, '').slice(0, 6) })}
               placeholder={child.has_pin ? 'Leave blank to keep current PIN' : 'Optional'}
             />
+            <div className="sm:col-span-2">
+              <label htmlFor="child-profile-image" className="label">Child picture (optional)</label>
+              <input ref={profileImageInput} id="child-profile-image" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" onChange={onProfileImageChange} className="input" />
+              <p className="mt-1 text-xs text-muted">JPG, PNG, or WebP only.</p>
+              {child.profile_image_url && <Button type="button" variant="ghost" onClick={removeProfileImage} disabled={saving} className="mt-1 min-h-0 px-0 py-1 text-xs">Remove picture</Button>}
+            </div>
             <div className="sm:col-span-3">
               <Alert>{saveError}</Alert>
             </div>

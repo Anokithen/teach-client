@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Input, Select } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -8,6 +8,7 @@ import { Alert } from '@/components/ui/Alert';
 import { useAuth } from '@/lib/auth-context';
 import { childrenApi } from '@/lib/endpoints';
 import { ApiErrorShape, Child, ChildGender } from '@/lib/types';
+import { isAllowedUploadFile, uploadFormatError } from '@/lib/file-validation';
 
 const GENDER_OPTIONS: { value: ChildGender; label: string }[] = [
   { value: 'female', label: 'Girl' },
@@ -35,9 +36,11 @@ export function ChildFormModal({ open, onClose, onCreated }: ChildFormModalProps
   const [form, setForm] = useState<ChildForm>({ name: '', age: '', gender: 'prefer_not_to_say', parent_id: '', child_pin: '' });
   const [error, setError] = useState<string | string[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
 
   const close = () => {
     setForm({ name: '', age: '', gender: 'prefer_not_to_say', parent_id: '', child_pin: '' });
+    setProfileImageFile(null);
     setError(null);
     onClose();
   };
@@ -55,7 +58,14 @@ export function ChildFormModal({ open, onClose, onCreated }: ChildFormModalProps
       if (isTeacher) payload.parent_id = Number(form.parent_id);
       if (form.child_pin) payload.child_pin = form.child_pin;
       const res = await childrenApi.create(payload);
-      onCreated?.(res.data.child);
+      let child = res.data.child as Child;
+      if (profileImageFile) {
+        const image = new FormData();
+        image.append('profile_image', profileImageFile);
+        const imageResponse = await childrenApi.uploadProfileImage(child.id, image);
+        child = imageResponse.data.child as Child;
+      }
+      onCreated?.(child);
       close();
     } catch (err) {
       const apiErr = err as ApiErrorShape;
@@ -64,6 +74,19 @@ export function ChildFormModal({ open, onClose, onCreated }: ChildFormModalProps
       setLoading(false);
     }
   };
+
+  function onProfileImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] || null;
+    setError(null);
+    if (!file) return setProfileImageFile(null);
+    if (!isAllowedUploadFile(file, 'image')) {
+      event.target.value = '';
+      setProfileImageFile(null);
+      setError(uploadFormatError('image'));
+      return;
+    }
+    setProfileImageFile(file);
+  }
 
   return (
     <Modal open={open} onClose={close} title="Add child">
@@ -87,6 +110,11 @@ export function ChildFormModal({ open, onClose, onCreated }: ChildFormModalProps
           onChange={(e) => setForm({ ...form, age: e.target.value })}
         />
         <p className="-mt-2 text-xs text-muted">New children start at beginner level and progress automatically as they earn points.</p>
+        <div>
+          <label htmlFor="new-child-profile-image" className="label">Child picture (optional)</label>
+          <input id="new-child-profile-image" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" onChange={onProfileImageChange} className="input" />
+          <p className="mt-1 text-xs text-muted">JPG, PNG, or WebP only.</p>
+        </div>
         {!isTeacher && <Input
           label="Child profile PIN (optional)"
           type="password"

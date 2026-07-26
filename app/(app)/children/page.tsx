@@ -73,8 +73,18 @@ export default function ChildrenPage() {
                 href={`/children/${child.id}`}
                 className="card block p-5 transition-all hover:-translate-y-1 hover:shadow-md"
               >
-                <div className="mb-3 flex items-start justify-between">
-                  <h3 className="text-base font-semibold text-brand-900">{child.name}</h3>
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full border border-brand-400/40 bg-brand-400/10 font-semibold text-brand-600">
+                      {child.profile_image_url ? (
+                        <>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={child.profile_image_url} alt="" className="h-full w-full object-cover" />
+                        </>
+                      ) : child.name[0]?.toUpperCase() || '?'}
+                    </div>
+                    <h3 className="truncate text-base font-semibold text-brand-900">{child.name}</h3>
+                  </div>
                   <Badge tone="brand">{child.reading_level}</Badge>
                 </div>
                 <p className="text-sm text-muted">Age {child.age}</p>

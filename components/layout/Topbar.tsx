@@ -74,8 +74,13 @@ export function Topbar({ onMenuClick, sidebarCollapsed, onSidebarToggle }: Topba
           aria-expanded={menuOpen}
           aria-label="Open profile menu"
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-brand-400 bg-white/15 text-base font-bold text-white shadow-inner sm:h-10 sm:w-10">
-            {account?.name?.[0]?.toUpperCase() || '?'}
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-brand-400 bg-white/15 text-base font-bold text-white shadow-inner sm:h-10 sm:w-10">
+            {account?.profile_image_url ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={account.profile_image_url} alt="" className="h-full w-full object-cover" />
+              </>
+            ) : account?.name?.[0]?.toUpperCase() || '?'}
           </span>
           <span className="hidden min-w-0 flex-col min-[380px]:flex">
             <span className="max-w-[145px] truncate font-semibold leading-tight">{account?.name || 'My profile'}</span>

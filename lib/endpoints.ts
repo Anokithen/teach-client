@@ -19,6 +19,9 @@ export const accountApi = {
   me: () => api.get('/api/parents/me'),
   update: (payload: { name?: string; email?: string; password?: string }) =>
     api.patch('/api/parents/me', payload),
+  uploadProfileImage: (payload: FormData) =>
+    api.post('/api/parents/me/profile-image', payload, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  removeProfileImage: () => api.delete('/api/parents/me/profile-image'),
   remove: () => api.delete('/api/parents/me'),
 };
 
@@ -30,6 +33,9 @@ export const childrenApi = {
     api.post('/api/children', payload),
   update: (id: number | string, payload: Partial<{ name: string; age: number; child_pin: string }>) =>
     api.patch(`/api/children/${id}`, payload),
+  uploadProfileImage: (id: number | string, payload: FormData) =>
+    api.post(`/api/children/${id}/profile-image`, payload, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  removeProfileImage: (id: number | string) => api.delete(`/api/children/${id}/profile-image`),
   verifyPin: (id: number | string, pin: string) => api.post(`/api/children/${id}/verify-pin`, { pin }),
   remove: (id: number | string) => api.delete(`/api/children/${id}`),
   sessions: (id: number | string) => api.get(`/api/children/${id}/reading-sessions`),
