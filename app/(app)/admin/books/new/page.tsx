@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { adminApi, aiApi } from '@/lib/endpoints';
 import { Alert } from '@/components/ui/Alert';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input, Select, Textarea } from '@/components/ui/Input';
 import { AiModel, ApiErrorShape, ReadingLevel } from '@/lib/types';
+import { isAllowedUploadFile, uploadFormatError } from '@/lib/file-validation';
 
 const AGE_GROUPS = ['3-5', '6-8', '9-11', '12+'];
 
@@ -49,11 +50,36 @@ export default function NewBookPage() {
   }, []);
 
   async function uploadMedia(file: File, mediaType: 'image' | 'video') {
+    if (!isAllowedUploadFile(file, mediaType)) throw new Error(uploadFormatError(mediaType));
     const media = new FormData();
     media.append('file', file);
     media.append('media_type', mediaType);
     const response = await adminApi.uploadBookMedia(media);
     return response.data.url as string;
+  }
+
+  function onMediaFileChange(file: File | undefined, mediaType: 'image' | 'video', setFile: (value: File | null) => void, input: HTMLInputElement) {
+    setError(null);
+    if (!file) return setFile(null);
+    if (!isAllowedUploadFile(file, mediaType)) {
+      input.value = '';
+      setFile(null);
+      setError(uploadFormatError(mediaType));
+      return;
+    }
+    setFile(file);
+  }
+
+  function onIllustrationFilesChange(event: ChangeEvent<HTMLInputElement>) {
+    setError(null);
+    const files = Array.from(event.target.files || []);
+    if (files.some((file) => !isAllowedUploadFile(file, 'image'))) {
+      event.target.value = '';
+      setIllustrationFiles([]);
+      setError(uploadFormatError('image'));
+      return;
+    }
+    setIllustrationFiles(files.slice(0, 8));
   }
 
   async function generateStory() {
@@ -165,9 +191,9 @@ export default function NewBookPage() {
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
               <Input label="Cover image URL" type="url" placeholder="https://…/cover.jpg" value={form.cover_image_url} onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })} />
               <Input label="Video URL" type="url" placeholder="https://…/story-video.mp4" value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })} />
-              <div><label className="label">Or upload a cover image</label><input key={`cover-${mediaInputKey}`} className="input" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} /></div>
-              <div className="sm:col-span-2"><label className="label">Story illustrations (up to 8)</label><input key={`illustrations-${mediaInputKey}`} className="input" type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={(e) => setIllustrationFiles(Array.from(e.target.files || []).slice(0, 8))} /><p className="mt-1 text-xs text-muted">These appear as an animated gallery on the book profile and reading screen.</p>{illustrationFiles.length > 0 && <p className="mt-1 text-xs font-medium text-brand-700">{illustrationFiles.length} illustration{illustrationFiles.length === 1 ? '' : 's'} selected.</p>}</div>
-              <div><label className="label">Or upload a video</label><input key={`video-${mediaInputKey}`} className="input" type="file" accept="video/mp4,video/webm,video/quicktime" onChange={(e) => setVideoFile(e.target.files?.[0] || null)} /></div>
+              <div><label className="label">Or upload a cover image</label><input key={`cover-${mediaInputKey}`} className="input" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" onChange={(e) => onMediaFileChange(e.target.files?.[0], 'image', setCoverFile, e.target)} /></div>
+              <div className="sm:col-span-2"><label className="label">Story illustrations (up to 8)</label><input key={`illustrations-${mediaInputKey}`} className="input" type="file" multiple accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" onChange={onIllustrationFilesChange} /><p className="mt-1 text-xs text-muted">These appear as an animated gallery on the book profile and reading screen.</p>{illustrationFiles.length > 0 && <p className="mt-1 text-xs font-medium text-brand-700">{illustrationFiles.length} illustration{illustrationFiles.length === 1 ? '' : 's'} selected.</p>}</div>
+              <div><label className="label">Or upload a video</label><input key={`video-${mediaInputKey}`} className="input" type="file" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" onChange={(e) => onMediaFileChange(e.target.files?.[0], 'video', setVideoFile, e.target)} /></div>
             </div>
           </div>
           <Input label="Reading resource URL (optional)" type="url" value={form.content_url} onChange={(e) => setForm({ ...form, content_url: e.target.value })} />

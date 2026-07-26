@@ -12,6 +12,7 @@ import { Select } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ApiErrorShape, Book, BookNarration, PronunciationCheck, ReadingSession, SessionFeedback, VoiceProfile } from '@/lib/types';
+import { isAllowedUploadFile, uploadFormatError } from '@/lib/file-validation';
 
 export default function ReadingSessionPage() {
   const { id } = useParams<{ id: string }>();
@@ -178,7 +179,12 @@ export default function ReadingSessionPage() {
         try {
           const form = new FormData();
           const extension = (recorder.mimeType || '').includes('mp4') ? 'mp4' : (recorder.mimeType || '').includes('ogg') ? 'ogg' : 'webm';
-          form.append('audio', audio, `my-reading.${extension}`);
+          const recordingFile = new File([audio], `my-reading.${extension}`, { type: audio.type });
+          if (!isAllowedUploadFile(recordingFile, 'audio')) {
+            setPronunciationError(uploadFormatError('audio'));
+            return;
+          }
+          form.append('audio', recordingFile);
           form.append('sentence_index', String(sentenceIndex));
           const response = await sessionsApi.transcribePronunciation(id, form);
           const spoken = response.data.transcript as string;

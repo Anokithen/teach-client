@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { adminApi } from '@/lib/endpoints';
 import { ApiErrorShape, Book, ReadingLevel } from '@/lib/types';
+import { isAllowedUploadFile, uploadFormatError } from '@/lib/file-validation';
 
 interface BookEditModalProps {
   book: Book;
@@ -75,6 +76,11 @@ export function BookEditModal({ book, open, onClose, onUpdated }: BookEditModalP
         .filter(Boolean);
       if (imageUrls.length + illustrationFiles.length > MAX_ILLUSTRATIONS) {
         setError(`A book can have up to ${MAX_ILLUSTRATIONS} illustrations.`);
+        setSaving(false);
+        return;
+      }
+      if (illustrationFiles.some((file) => !isAllowedUploadFile(file, 'image'))) {
+        setError(uploadFormatError('image'));
         setSaving(false);
         return;
       }
@@ -166,8 +172,18 @@ export function BookEditModal({ book, open, onClose, onUpdated }: BookEditModalP
             className="input"
             type="file"
             multiple
-            accept="image/jpeg,image/png,image/webp"
-            onChange={(event) => setIllustrationFiles(Array.from(event.target.files || []))}
+            accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+            onChange={(event) => {
+              const files = Array.from(event.target.files || []);
+              if (files.some((file) => !isAllowedUploadFile(file, 'image'))) {
+                event.target.value = '';
+                setIllustrationFiles([]);
+                setError(uploadFormatError('image'));
+                return;
+              }
+              setError(null);
+              setIllustrationFiles(files);
+            }}
           />
           <p className="mt-1 text-xs text-muted">Select multiple JPG, PNG, or WebP files. They will be added to the existing illustrations when you save.</p>
           {illustrationFiles.length > 0 && (

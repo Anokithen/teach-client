@@ -13,9 +13,9 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/lib/auth-context';
 import { ApiErrorShape, VoiceProfile, VoiceProfileStatus } from '@/lib/types';
+import { isAllowedUploadFile, uploadFormatError } from '@/lib/file-validation';
 
 const MAX_BYTES = 25 * 1024 * 1024;
-const ACCEPTED_EXTENSIONS = ['mp3', 'wav', 'webm', 'ogg', 'm4a', 'mp4'];
 const STATUS_TONE: Record<VoiceProfileStatus, 'warning' | 'success' | 'danger'> = {
   processing: 'warning', ready: 'success', failed: 'danger',
 };
@@ -130,10 +130,10 @@ export default function VoiceProfilesPage() {
     const selected = event.target.files?.[0] || null;
     setCreateError(null);
     if (!selected) return setFile(null);
-    const extension = selected.name.split('.').pop()?.toLowerCase();
-    if (!ACCEPTED_EXTENSIONS.includes(extension || '')) {
+    if (!isAllowedUploadFile(selected, 'audio')) {
       setFile(null);
-      return setCreateError('Choose a supported audio file.');
+      event.target.value = '';
+      return setCreateError(uploadFormatError('audio'));
     }
     if (selected.size > MAX_BYTES) {
       setFile(null);
@@ -145,6 +145,10 @@ export default function VoiceProfilesPage() {
   async function uploadRecording(recording: File) {
     setCreateError(null); setCreating(true);
     try {
+      if (!isAllowedUploadFile(recording, 'audio')) {
+        setCreateError(uploadFormatError('audio'));
+        return;
+      }
       const data = new FormData();
       data.append('audio', recording);
       if (label.trim()) data.append('label', label.trim());
@@ -316,7 +320,7 @@ export default function VoiceProfilesPage() {
           </div>
           <label className="block">
             <span className="text-sm font-semibold text-brand-900">Or upload an existing recording</span>
-            <input ref={fileInput} type="file" accept="audio/mpeg,audio/wav,audio/webm,audio/ogg,audio/mp4,.mp3,.wav,.webm,.ogg,.m4a,.mp4" onChange={onFileChange} className="sr-only" />
+            <input ref={fileInput} type="file" accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/wave,audio/vnd.wave,audio/webm,audio/ogg,audio/mp4,audio/x-m4a,video/mp4,.mp3,.wav,.webm,.ogg,.m4a,.mp4" onChange={onFileChange} className="sr-only" />
             <span className="voice-file-picker mt-2 flex cursor-pointer items-center justify-between gap-3 rounded-xl border-2 border-dashed border-violet-300 bg-gradient-to-r from-violet-50 via-fuchsia-50 to-amber-50 px-4 py-3 transition hover:border-brand-400 hover:shadow-sm">
               <span className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-lg text-white">↑</span><span><span className="block text-sm font-semibold text-violet-700">Choose audio file</span><span className="block text-xs text-muted">Tap to browse your device</span></span></span>
               <span className="max-w-28 truncate text-xs font-medium text-brand-600">{file?.name || 'No file chosen'}</span>
