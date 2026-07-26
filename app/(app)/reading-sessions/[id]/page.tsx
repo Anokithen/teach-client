@@ -43,10 +43,14 @@ export default function ReadingSessionPage() {
   const [imageIndex, setImageIndex] = useState(0);
   const narrationAudio = useRef<HTMLAudioElement>(null);
 
-  const paragraphs = (book?.text_content || '')
-    .split(/\n\s*\n+/)
-    .map((paragraph) => paragraph.trim())
+  const sentences = (book?.text_content || '')
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map((sentence) => sentence.trim())
     .filter(Boolean);
+  const paragraphs = Array.from(
+    { length: Math.ceil(sentences.length / 6) },
+    (_, index) => sentences.slice(index * 6, index * 6 + 6).join(' '),
+  );
   const storyImages = [book?.cover_image_url, ...(book?.image_urls || [])].filter(Boolean) as string[];
 
   useEffect(() => {
@@ -361,7 +365,7 @@ export default function ReadingSessionPage() {
                   <span className="text-3xl" aria-hidden="true">{listening ? '◼' : '🎙'}</span>
                 </button>
                 <p className="text-sm font-medium text-brand-900">{listening ? 'Listening… tap to finish' : transcribing ? 'Listening back to your words…' : 'Tap the microphone to read'}</p>
-                <p className="text-xs text-muted">Earn up to 50 leaderboard points based on your accuracy, once per paragraph.</p>
+                <p className="text-xs text-muted">Each paragraph contains 6 sentences. Earn up to 50 leaderboard points based on your accuracy.</p>
               </div>
               <div className="flex flex-wrap justify-center gap-3">
                 <Button
