@@ -298,7 +298,7 @@ export default function VoiceProfilesPage() {
           </li>)}
         </ul>}
         {previewError && <Alert>{previewError}</Alert>}
-        {previewUrl && <div className="mt-4 overflow-hidden rounded-2xl border border-brand-400/30 bg-gradient-to-r from-cyan-50 via-violet-50 to-amber-50 p-4 shadow-sm">
+        {previewUrl && <div className="voice-playback-card mt-4 overflow-hidden rounded-2xl border border-brand-400/30 bg-gradient-to-r from-cyan-50 via-violet-50 to-amber-50 p-4 shadow-sm">
           <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-brand-600 to-violet-500 text-lg text-white shadow-md">♫</span><div><p className="text-sm font-semibold text-brand-900">Your voice is ready to play</p><p className="text-xs text-muted">Use the controls below to pause, replay, or seek.</p></div></div>
           <PlaybackWave />
           <audio ref={previewAudio} key={previewUrl} className="vibrant-audio-player w-full" controls autoPlay preload="metadata" src={previewUrl} onEnded={() => setPreviewUrl(null)} onError={() => setPreviewError('This recording could not be played. Please try again.')}>Your browser cannot play this recording.</audio>
