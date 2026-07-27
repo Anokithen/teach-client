@@ -26,7 +26,7 @@ interface AccountsTableProps {
   onBan: (id: number) => Promise<void>;
   onUnban: (id: number) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
-  onCreate: (form: AccountCreateForm) => Promise<void>;
+  onCreate: (form: AccountCreateForm) => Promise<boolean>;
   createError: string | string[] | null;
   creating: boolean;
 }
@@ -47,28 +47,40 @@ export function AccountsTable({
   const [pendingBan, setPendingBan] = useState<Account | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Account | null>(null);
   const [rowLoading, setRowLoading] = useState<number | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   async function submitCreate(e: FormEvent) {
     e.preventDefault();
-    await onCreate(form);
-    setForm({ name: '', email: '', password: '' });
+    if (await onCreate(form)) setForm({ name: '', email: '', password: '' });
   }
 
   async function confirmBanToggle() {
     if (!pendingBan) return;
     setRowLoading(pendingBan.id);
-    if (pendingBan.is_banned) await onUnban(pendingBan.id);
-    else await onBan(pendingBan.id);
-    setRowLoading(null);
-    setPendingBan(null);
+    setActionError(null);
+    try {
+      if (pendingBan.is_banned) await onUnban(pendingBan.id);
+      else await onBan(pendingBan.id);
+      setPendingBan(null);
+    } catch (err) {
+      setActionError((err as { message?: string }).message || 'Could not update this account. Please try again.');
+    } finally {
+      setRowLoading(null);
+    }
   }
 
   async function confirmDelete() {
     if (!pendingDelete) return;
     setRowLoading(pendingDelete.id);
-    await onDelete(pendingDelete.id);
-    setRowLoading(null);
-    setPendingDelete(null);
+    setActionError(null);
+    try {
+      await onDelete(pendingDelete.id);
+      setPendingDelete(null);
+    } catch (err) {
+      setActionError((err as { message?: string }).message || 'Could not delete this account. Please try again.');
+    } finally {
+      setRowLoading(null);
+    }
   }
 
   return (
@@ -80,6 +92,7 @@ export function AccountsTable({
           </div>
         )}
         {error && <Alert>{error}</Alert>}
+        {actionError && <Alert>{actionError}</Alert>}
         {accounts && accounts.length === 0 && <EmptyState title={`No ${label}s yet`} />}
         {accounts && accounts.length > 0 && (
           <Table columns={['Name', 'Email', 'Children', 'Status', '']}>

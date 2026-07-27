@@ -25,15 +25,17 @@ export default function AdminParentsPage() {
     }
   }
 
-  async function onCreate(form: AccountCreateForm) {
+  async function onCreate(form: AccountCreateForm): Promise<boolean> {
     setCreateError(null);
     setCreating(true);
     try {
       await adminApi.createParent(form);
       await load();
+      return true;
     } catch (err) {
       const apiErr = err as ApiErrorShape;
       setCreateError(apiErr.fields?.length ? apiErr.fields : apiErr.message);
+      return false;
     } finally {
       setCreating(false);
     }
