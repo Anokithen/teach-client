@@ -28,9 +28,15 @@
   body {
     @apply bg-bg text-brand-900 antialiased;
     position: relative;
+    font-size: 16px;
+    line-height: 1.5;
     background-image: radial-gradient(circle at 8% 4%, rgba(84, 172, 191, .14), transparent 26rem), radial-gradient(circle at 92% 12%, rgba(145, 89, 245, .08), transparent 24rem), radial-gradient(circle at 50% 100%, rgba(246, 184, 63, .08), transparent 30rem);
     overflow-x: clip;
   }
+
+  ::selection { background: rgb(84 172 191 / .28); color: #023859; }
+  button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+  button, a { touch-action: manipulation; }
 
   body::before { content: '✦'; pointer-events: none; position: fixed; z-index: 0; right: 1.4rem; bottom: 1.4rem; color: #E0A438; font-size: 1.35rem; opacity: .34; text-shadow: -77vw -72vh 0 rgba(84,172,191,.45), -28vw -8vh 0 rgba(139,92,246,.28), -62vw 36vh 0 rgba(224,164,56,.25); animation: page-star-float 6s ease-in-out infinite; }
   body::after { content: ''; pointer-events: none; position: fixed; z-index: 0; right: 5.2rem; bottom: 1.5rem; width: .72rem; height: .72rem; border-radius: 999px; background: rgba(84,172,191,.28); box-shadow: -80vw -42vh 0 rgba(139,92,246,.16), -23vw -74vh 0 rgba(224,164,56,.18), -58vw 12vh 0 rgba(84,172,191,.18); animation: page-bubble-float 7s ease-in-out infinite; }
@@ -243,6 +249,37 @@
   .dark .mic-orb { box-shadow: 12px 12px 24px rgba(1, 12, 21, .38), inset 2px 2px 5px rgba(255,255,255,.12); }
   .dark .weekly-challenge-card { background: linear-gradient(135deg, #493A22, #1C3443 52%, #123A45) !important; }
   .dark .weekly-challenge-summary { background: rgba(22, 43, 58, .88) !important; }
+
+  /* Theme-safe defaults for legacy utility combinations used throughout the app. */
+  .text-brand-400 { color: #26658C; }
+  .dark .text-brand-400 { color: #8EE5F3; }
+  .dark .soft-card, .dark .content-panel, .dark .card, .dark .neumorphic-card,
+  .dark .app-content-surface {
+    border-color: rgb(var(--color-border) / .9);
+    background: rgb(var(--color-surface) / .96);
+    box-shadow: 10px 10px 24px rgba(1, 12, 21, .28), 0 1px 0 rgb(142 229 243 / .04);
+  }
+  .dark .soft-inset { border-color: rgb(var(--color-border) / .9); background: rgb(var(--color-bg) / .82); box-shadow: inset 3px 3px 7px rgba(1,12,21,.22), inset -2px -2px 5px rgba(72,111,128,.10); }
+  .dark .page-hero, .dark .leaderboard-hero { border-color: rgb(var(--color-border) / .9); background: linear-gradient(135deg, #123A45, #162B3A 62%, #252542); color: #E6F3F6; }
+  .dark .page-hero h1, .dark .page-hero .text-brand-900 { color: #F3FAFC; }
+  .dark .page-hero .text-brand-600 { color: #8EE5F3; }
+  .dark .text-brand-500, .dark .text-brand-700, .dark .text-brand-800 { color: #A8E4EC; }
+  .dark .app-content-surface { background: rgb(15 35 49 / .94); }
+  .dark .leaderboard-board { background: linear-gradient(180deg, #123A45, #102D3F); }
+  .dark .leaderboard-table-row { border-color: rgb(var(--color-border) / .9); background: #162B3A; }
+  .dark .bg-white\/10 { background-color: rgb(255 255 255 / .12); }
+  .dark .hover\:bg-white:hover { background-color: #244758 !important; }
+  .dark .text-blue-100 { color: #D5EEF5; }
+  .dark .text-cyan-100 { color: #C5F1F7; }
+
+  .app-content-surface { background: rgb(var(--color-surface) / .82); }
+  .soft-card, .content-panel, .card, .neumorphic-card { background: rgb(var(--color-surface) / .96); }
+  .page-hero { color: #023859; }
+  .page-hero .text-muted { color: #526B7D; }
+  .input::placeholder { opacity: .78; }
+  .input:focus { box-shadow: 0 0 0 3px rgb(84 172 191 / .18), inset 2px 2px 5px rgba(2,56,89,.06); }
+  .dark select option { background: #162B3A; color: #E6F3F6; }
+  .sidebar-kids nav a:focus-visible, .btn:focus-visible, .input:focus-visible { outline-color: #8EE5F3; }
 
   .loading-splash { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; padding: 2rem; text-align: center; background: radial-gradient(circle at 50% 42%, #26658C 0%, #023859 42%, #01233d 100%); }
   .loading-logo-wrap { z-index: 1; display: grid; place-items: center; width: 136px; height: 136px; border-radius: 999px; background: rgba(255,255,255,.96); box-shadow: 0 0 0 12px rgba(84,172,191,.18), 0 22px 50px rgba(0,0,0,.28); animation: logo-bob 2s ease-in-out infinite; }

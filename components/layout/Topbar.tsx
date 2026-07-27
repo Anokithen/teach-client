@@ -50,7 +50,7 @@ export function Topbar({ onMenuClick, sidebarCollapsed, onSidebarToggle }: Topba
       </div>
 
       <div className="hidden items-center gap-3 lg:flex">
-        <button type="button" onClick={onSidebarToggle} className="rounded-xl border border-white/15 bg-white/10 p-2 text-white transition hover:bg-white/20 active:scale-95" aria-label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}>
+        <button type="button" onClick={onSidebarToggle} className="soft-inset rounded-xl p-2 text-brand-900 transition hover:bg-white active:scale-95" aria-label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}>
           <svg className={`h-5 w-5 transition-transform ${sidebarCollapsed ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m15 18-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </button>
         {sidebarCollapsed && <div className="header-brand-reveal"><Logo /></div>}
@@ -74,7 +74,7 @@ export function Topbar({ onMenuClick, sidebarCollapsed, onSidebarToggle }: Topba
           aria-expanded={menuOpen}
           aria-label="Open profile menu"
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-brand-400 bg-white/15 text-base font-bold text-white shadow-inner sm:h-10 sm:w-10">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-brand-400 bg-brand-600 text-base font-bold text-white shadow-inner sm:h-10 sm:w-10">
             {account?.profile_image_url ? (
               <>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
