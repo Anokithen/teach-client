@@ -33,7 +33,7 @@ export default function LandingPage() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="auth-page min-h-screen bg-bg text-brand-900">
+    <div className="home-night min-h-screen">
       <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-5 sm:px-6 sm:py-6">
         <Logo />
         <nav className="ml-auto flex items-center gap-2 sm:gap-3">
@@ -57,11 +57,11 @@ export default function LandingPage() {
       <main className="mx-auto max-w-6xl px-6">
         <section className="grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-24">
           <div>
-            <p className="mb-4 inline-flex items-center rounded-full bg-brand-400/15 px-3 py-1 text-xs font-semibold text-brand-600 ring-1 ring-brand-400/30">✦ For parents & teachers</p>
-            <h1 className="text-4xl font-black leading-tight tracking-tight text-brand-900 sm:text-5xl">
+            <p className="mb-4 inline-flex items-center rounded-full bg-brand-400/20 px-3 py-1 text-xs font-semibold text-cyan-100 ring-1 ring-brand-400/50">✦ For parents & teachers</p>
+            <h1 className="text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
               A reading companion that sounds like home.
             </h1>
-            <p className="mt-5 max-w-lg text-base text-muted">
+            <p className="mt-5 max-w-lg text-base text-blue-100/85">
               TeachAlike turns every reading session into guided practice: track progress, generate
               encouraging feedback, and — when you want it — narrate in a parent&apos;s own cloned voice.
             </p>
@@ -73,7 +73,7 @@ export default function LandingPage() {
                 I already have an account
               </Link>
             </div>
-            <p className="mt-6 text-sm font-bold uppercase tracking-wide text-brand-600">
+            <p className="mt-6 text-sm font-medium uppercase tracking-wide text-cyan-200">
               Learn. Listen. Grow.
             </p>
           </div>
@@ -99,7 +99,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="border-t border-border py-8 text-center text-sm text-muted">
+      <footer className="border-t border-white/10 py-8 text-center text-sm text-blue-100/75">
         TeachAlike — Learn. Listen. Grow.
       </footer>
     </div>
