@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { adminApi } from '@/lib/endpoints';
 import { AccountCreateForm, AccountsTable } from '@/components/admin/AccountsTable';
 import { Account, ApiErrorShape } from '@/lib/types';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default function AdminTeachersPage() {
   const [accounts, setAccounts] = useState<Account[] | null>(null);
@@ -55,8 +56,7 @@ export default function AdminTeachersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-brand-900">Teachers</h1>
-      <p className="mt-1 text-sm text-muted">Manage teacher accounts across the platform.</p>
+      <PageHeader eyebrow="Admin workspace" title="Teachers" icon="🧑‍🏫" description="Manage teacher accounts across the platform." />
       <div className="mt-6">
         <AccountsTable
           label="teacher"

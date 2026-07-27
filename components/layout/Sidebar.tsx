@@ -28,13 +28,13 @@ export function Sidebar({ open, collapsed, onClose }: SidebarProps) {
         />
       )}
       <aside
-          className={`sidebar-kids fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-white/10 p-5 transition-all lg:static lg:translate-x-0 ${collapsed ? 'lg:w-0 lg:overflow-hidden lg:border-r-0 lg:p-0' : 'lg:w-64'} ${
+          className={`sidebar-kids fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-white/10 p-5 transition-all lg:static lg:translate-x-0 ${collapsed ? 'lg:w-20 lg:px-3' : 'lg:w-64'} ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="mb-8 px-1">
+        <div className={`mb-8 px-1 ${collapsed ? 'lg:flex lg:justify-center' : ''}`}>
           <div className="flex items-center justify-between gap-2">
-            <Logo />
+            <Logo compact={collapsed} />
             <button type="button" onClick={onClose} className="rounded-lg p-2 text-cyan-100 transition-transform hover:bg-white/10 active:scale-90 lg:hidden" aria-label="Close menu">
               <span aria-hidden="true" className="text-xl leading-none">×</span>
             </button>
@@ -50,13 +50,13 @@ export function Sidebar({ open, collapsed, onClose }: SidebarProps) {
                 onClick={onClose}
                 title={collapsed ? item.label : undefined}
                 aria-label={collapsed ? item.label : undefined}
-                className={`rounded-xl px-3 py-2.5 text-sm font-medium transition-all hover:translate-x-0.5 ${collapsed ? 'lg:flex lg:justify-center' : ''} ${
+                className={`group relative flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition-all hover:translate-x-0.5 ${collapsed ? 'lg:justify-center lg:px-2' : ''} ${
                   active
-                    ? 'bg-white/18 text-white shadow-lg'
+                    ? 'bg-white text-brand-900 shadow-lg after:absolute after:-right-5 after:h-7 after:w-1 after:rounded-l-full after:bg-brand-400 lg:after:-right-3'
                     : 'text-blue-100 hover:bg-white/10'
                 }`}
               >
-                {collapsed && <span className="hidden lg:inline" aria-hidden="true">{item.label.slice(0, 1)}</span>}
+                <NavIcon href={item.href} active={active} />
                 <span className={collapsed ? 'lg:hidden' : ''}>{item.label}</span>
               </Link>
             );
@@ -66,4 +66,9 @@ export function Sidebar({ open, collapsed, onClose }: SidebarProps) {
       </aside>
     </>
   );
+}
+
+function NavIcon({ href, active }: { href: string; active: boolean }) {
+  const icon = href.includes('dashboard') ? '⌂' : href.includes('children') ? '●' : href.includes('book') ? '▤' : href.includes('voice') ? '◖' : href.includes('leaderboard') ? '★' : href.includes('account') ? '◉' : href.includes('parent') || href.includes('teacher') ? '♟' : '+';
+  return <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg text-base ${active ? 'bg-brand-400/15 text-brand-600' : 'bg-white/10 text-cyan-100'}`} aria-hidden="true">{icon}</span>;
 }

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { ChildFormModal } from '@/components/children/ChildFormModal';
 import { ApiErrorShape, Child } from '@/lib/types';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default function ChildrenPage() {
   const { isAdmin } = useAuth();
@@ -33,15 +34,7 @@ export default function ChildrenPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-brand-900">Children</h1>
-          <p className="mt-1 text-sm text-muted">
-            {isAdmin ? 'Every child profile on the platform.' : 'Manage the children you read with.'}
-          </p>
-        </div>
-        {!isAdmin && <Button onClick={() => setModalOpen(true)}>Add child</Button>}
-      </div>
+      <PageHeader eyebrow="Growing readers" title="Children" icon="🧒" description={isAdmin ? 'Every child profile on the platform.' : 'Manage the children you read with.'} action={!isAdmin ? <Button onClick={() => setModalOpen(true)}>Add child</Button> : undefined} />
 
       <div className="mt-6">
         {!children && !error && (

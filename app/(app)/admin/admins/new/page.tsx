@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { ApiErrorShape } from '@/lib/types';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 interface NewAdminForm {
   name: string;
@@ -39,10 +40,7 @@ export default function NewAdminPage() {
 
   return (
     <div className="max-w-md">
-      <h1 className="text-2xl font-semibold text-brand-900">Add an admin</h1>
-      <p className="mt-1 text-sm text-muted">
-        Bootstrap another administrator account. There&apos;s no public sign-up for this role.
-      </p>
+      <PageHeader eyebrow="Admin workspace" title="Add an admin" icon="🛡️" description="Bootstrap another administrator account. There&apos;s no public sign-up for this role." />
 
       <Card className="mt-6">
         <form onSubmit={onSubmit} className="space-y-4">

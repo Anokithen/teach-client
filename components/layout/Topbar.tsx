@@ -34,7 +34,7 @@ export function Topbar({ onMenuClick, sidebarCollapsed, onSidebarToggle }: Topba
   }
 
   return (
-    <header className="sticky top-0 z-30 flex w-full min-w-0 shrink-0 items-center justify-between gap-2 border-b border-white/10 bg-brand-900/95 px-3 py-3 text-white backdrop-blur sm:px-4 lg:px-8">
+    <header className="sticky top-0 z-30 flex w-full min-w-0 shrink-0 items-center justify-between gap-2 border-b border-brand-900/10 bg-brand-900/95 px-3 py-3 text-white shadow-sm backdrop-blur sm:px-4 lg:px-8">
       <div className="flex min-w-0 items-center gap-1.5 lg:hidden">
         <button
           type="button"
@@ -60,7 +60,7 @@ export function Topbar({ onMenuClick, sidebarCollapsed, onSidebarToggle }: Topba
         <button
           type="button"
           onClick={toggleTheme}
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/20 bg-white/10 text-lg text-white transition hover:bg-white/20 active:scale-90"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/20 bg-white/10 text-lg text-white shadow-inner transition hover:bg-white/20 active:scale-90"
           aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
           title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
         >
@@ -70,7 +70,7 @@ export function Topbar({ onMenuClick, sidebarCollapsed, onSidebarToggle }: Topba
         <button
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
-          className="flex max-w-[calc(100vw-5.5rem)] items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-2 py-2 text-left text-sm font-medium text-white shadow-sm transition hover:bg-white/20 active:scale-[.98] focus:outline-none focus:ring-2 focus:ring-brand-400 sm:max-w-none sm:gap-3 sm:px-3"
+          className="flex max-w-[calc(100vw-5.5rem)] items-center gap-2 rounded-full border border-white/20 bg-white/10 px-2 py-2 text-left text-sm font-medium text-white shadow-inner transition hover:bg-white/20 active:scale-[.98] focus:outline-none focus:ring-2 focus:ring-brand-400 sm:max-w-none sm:gap-3 sm:px-3"
           aria-expanded={menuOpen}
           aria-label="Open profile menu"
         >

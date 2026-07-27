@@ -5,8 +5,8 @@
 @layer base {
   :root {
     --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
-    --color-bg: 238 244 246;
-    --color-surface: 246 249 250;
+    --color-bg: 238 246 250;
+    --color-surface: 248 251 253;
     --color-border: 211 225 231;
     --color-muted: 91 113 131;
     --color-success: 63 166 107;
@@ -28,7 +28,7 @@
   body {
     @apply bg-bg text-brand-900 antialiased;
     position: relative;
-    background-image: radial-gradient(circle at 8% 4%, rgba(84, 172, 191, .25), transparent 26rem), radial-gradient(circle at 92% 12%, rgba(91, 93, 212, .14), transparent 24rem), radial-gradient(circle at 50% 100%, rgba(224, 164, 56, .12), transparent 30rem);
+    background-image: radial-gradient(circle at 8% 4%, rgba(84, 172, 191, .14), transparent 26rem), radial-gradient(circle at 92% 12%, rgba(145, 89, 245, .08), transparent 24rem), radial-gradient(circle at 50% 100%, rgba(246, 184, 63, .08), transparent 30rem);
     overflow-x: clip;
   }
 
@@ -69,16 +69,33 @@
 }
 
 @layer components {
+  .neumorphic-card, .card {
+    border-radius: 1.5rem;
+    border: 1px solid rgba(211, 225, 231, .72);
+    background: rgb(var(--color-surface) / .94);
+    box-shadow: 10px 10px 24px rgba(2, 56, 89, .10), -8px -8px 20px rgba(255, 255, 255, .92);
+  }
+  .neumorphic-card-hover { transition: transform .2s ease, box-shadow .2s ease; }
+  .neumorphic-card-hover:hover { transform: translateY(-4px); box-shadow: 12px 14px 28px rgba(2, 56, 89, .14), -8px -8px 20px rgba(255, 255, 255, .92); }
+  .neumorphic-inset { border: 1px solid rgba(211, 225, 231, .72); border-radius: 1.25rem; background: rgb(var(--color-bg) / .65); box-shadow: inset 3px 3px 7px rgba(2, 56, 89, .08), inset -3px -3px 7px rgba(255, 255, 255, .90); }
+  .soft-panel { border: 1px solid rgba(84, 172, 191, .18); border-radius: 1.5rem; background: linear-gradient(135deg, rgba(255,255,255,.76), rgba(234,246,250,.78)); box-shadow: 10px 10px 24px rgba(2,56,89,.08), -8px -8px 20px rgba(255,255,255,.86); }
+  .page-hero { position: relative; overflow: hidden; border: 1px solid rgba(84,172,191,.28); border-radius: 1.75rem; background: linear-gradient(135deg, #023859, #26658C 55%, #7655E8); box-shadow: 10px 12px 28px rgba(2,56,89,.16); }
+  .icon-bubble { display: grid; place-items: center; border-radius: 999px; background: linear-gradient(135deg, rgba(84,172,191,.2), rgba(118,85,232,.16)); }
+  .stat-card { border-radius: 1.35rem; border: 1px solid rgba(211,225,231,.72); background: rgba(248,251,253,.88); box-shadow: 8px 9px 21px rgba(2,56,89,.09), -7px -7px 18px rgba(255,255,255,.86); transition: transform .2s ease, box-shadow .2s ease; }
+  .stat-card:hover { transform: translateY(-3px); }
+  .kids-chip { display: inline-flex; align-items: center; border-radius: 999px; padding: .3rem .7rem; font-size: .75rem; font-weight: 700; color: #26658C; background: rgba(84,172,191,.14); }
+  .gradient-title-panel { background: linear-gradient(135deg, rgba(84,172,191,.14), rgba(118,85,232,.12), rgba(246,184,63,.12)); }
+  .auth-page { background-image: radial-gradient(circle at 10% 20%, rgba(84,172,191,.18), transparent 20rem), radial-gradient(circle at 90% 80%, rgba(118,85,232,.13), transparent 22rem); }
   .btn {
     @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
-    box-shadow: 5px 5px 12px rgba(25, 83, 112, .12), -5px -5px 12px rgba(255, 255, 255, .58);
+    box-shadow: 5px 5px 12px rgba(2, 56, 89, .10), -5px -5px 12px rgba(255, 255, 255, .82);
   }
   .btn-primary {
-    @apply btn bg-brand-900 text-white hover:bg-brand-600 hover:-translate-y-0.5;
+    @apply btn bg-gradient-to-r from-brand-900 to-brand-600 text-white hover:-translate-y-0.5;
     box-shadow: 5px 5px 12px rgba(2, 56, 89, .28), inset -1px -1px 0 rgba(255, 255, 255, .08);
   }
   .btn-secondary {
-    @apply btn border border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white;
+    @apply btn border border-brand-400/60 bg-surface text-brand-600 hover:bg-brand-400 hover:text-white;
   }
   .btn-ghost {
     @apply btn text-muted hover:bg-border/60;
@@ -87,17 +104,14 @@
     @apply btn bg-danger text-white hover:opacity-90;
   }
   .input {
-    @apply w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-brand-900 placeholder:text-muted/70 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400/40;
-    box-shadow: inset 3px 3px 7px rgba(25, 83, 112, .08), inset -2px -2px 5px rgba(255, 255, 255, .55);
+    @apply w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-brand-900 placeholder:text-muted/70 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/40;
+    box-shadow: inset 3px 3px 7px rgba(2, 56, 89, .08), inset -2px -2px 5px rgba(255, 255, 255, .78);
     transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
   }
   .label {
     @apply mb-1.5 block text-sm font-medium text-brand-900;
   }
-  .card {
-    @apply rounded-2xl border border-border/70 bg-surface shadow-card;
-    box-shadow: 10px 10px 24px rgba(25, 83, 112, .10), -10px -10px 24px rgba(255, 255, 255, .55);
-  }
+  .card { @apply rounded-3xl border border-border/70 bg-surface shadow-card; }
   .chip {
     @apply inline-flex items-center rounded-full bg-brand-400/15 px-2.5 py-1 text-xs font-medium text-brand-600;
   }
@@ -147,9 +161,9 @@
     background: linear-gradient(90deg, #E0F7FA, #F3E8FF, #FEF3C7);
   }
 
-  .app-shell { background: linear-gradient(135deg, #062F52 0%, #023859 30%, #EAF4F8 30%, #F7FAFB 100%); }
+  .app-shell { background: linear-gradient(135deg, #062F52 0%, #023859 23%, #EAF4F8 23%, #F7FAFB 100%); }
   .dark .app-shell { background: linear-gradient(135deg, #061D2E 0%, #082A40 30%, #0C1D2B 30%, #0C1D2B 100%); }
-  .sidebar-kids { background: linear-gradient(165deg, #012D4C, #064B77 58%, #26658C); }
+  .sidebar-kids { background: linear-gradient(165deg, #012D4C, #064B77 58%, #26658C); box-shadow: inset -8px 0 20px rgba(1,20,38,.12); }
   .sidebar-kids .text-brand-900 { color: white; }
   .sidebar-kids .brand-logo { padding: .35rem; border-radius: 1.1rem; background: rgba(255,255,255,.10); }
   .sidebar-kids .brand-logo-mark { width: 54px; height: 54px; }
@@ -165,7 +179,9 @@
   .dark body {
     background-image: radial-gradient(circle at 8% 4%, rgba(84, 172, 191, .12), transparent 26rem), radial-gradient(circle at 92% 12%, rgba(91, 93, 212, .10), transparent 24rem), radial-gradient(circle at 50% 100%, rgba(224, 164, 56, .07), transparent 30rem);
   }
-  .dark .card { box-shadow: 10px 10px 24px rgba(1, 12, 21, .28), -8px -8px 22px rgba(72, 111, 128, .08); }
+  .dark .card, .dark .neumorphic-card, .dark .stat-card { background: rgb(var(--color-surface) / .96); box-shadow: 10px 10px 24px rgba(1, 12, 21, .28), -8px -8px 22px rgba(72, 111, 128, .08); }
+  .dark .soft-panel { background: linear-gradient(135deg, #123A45, #202544 58%, #2E2948); box-shadow: 10px 10px 24px rgba(1,12,21,.28), -8px -8px 22px rgba(72,111,128,.08); }
+  .dark .neumorphic-inset { background: rgba(12,29,43,.72); box-shadow: inset 3px 3px 7px rgba(1,12,21,.22), inset -2px -2px 5px rgba(72,111,128,.10); }
   .dark .input { box-shadow: inset 3px 3px 7px rgba(1, 12, 21, .22), inset -2px -2px 5px rgba(72, 111, 128, .10); }
   .dark .btn { box-shadow: 0 1px 2px rgba(1, 12, 21, .18); }
   .dark .btn:hover:not(:disabled) { box-shadow: 0 8px 18px rgba(1, 12, 21, .28), 0 0 0 1px rgba(142, 229, 243, .08); }

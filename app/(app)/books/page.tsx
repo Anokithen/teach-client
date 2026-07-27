@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Alert } from '@/components/ui/Alert';
 import { Select } from '@/components/ui/Input';
 import { ApiErrorShape, Book, ReadingLevel } from '@/lib/types';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 const READING_LEVELS: ReadingLevel[] = ['beginner', 'intermediate', 'advanced'];
 const AGE_GROUPS = ['3-5', '6-8', '9-11', '12+'];
@@ -46,8 +47,7 @@ export default function BooksPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-brand-900">Books</h1>
-      <p className="mt-1 text-sm text-muted">Browse the library and assign a title to a reading session.</p>
+      <PageHeader eyebrow="Digital bookshelf" title="Books" icon="📚" description="Browse the library and assign a title to a reading session." />
 
       <div className="mt-6 flex flex-wrap gap-3">
         <Select

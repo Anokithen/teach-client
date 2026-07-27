@@ -38,12 +38,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-bg px-4 py-12">
+    <div className="auth-page flex min-h-screen items-center justify-center bg-bg px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex justify-center">
           <Logo />
         </div>
-        <div className="card p-6">
+        <div className="neumorphic-card relative overflow-hidden p-6 sm:p-8">
+          <span className="pointer-events-none absolute right-5 top-4 text-xl text-gold/70" aria-hidden="true">✦</span>
           <h1 className="mb-1 text-xl font-semibold text-brand-900">Log in</h1>
           <p className="mb-6 text-sm text-muted">Welcome back — pick up where you left off.</p>
 

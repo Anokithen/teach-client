@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/Badge';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ApiErrorShape } from '@/lib/types';
 import { isAllowedUploadFile, uploadFormatError } from '@/lib/file-validation';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 interface AccountForm {
   name: string;
@@ -110,7 +111,7 @@ export default function AccountPage() {
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-2xl font-semibold text-brand-900">My account</h1>
+      <PageHeader eyebrow="Your TeachAlike space" title="My account" icon="🌟" description="Keep your profile and account details up to date." />
       <div className="mt-2 flex items-center gap-2">
         <Badge tone="brand" className="capitalize">
           {account.role}

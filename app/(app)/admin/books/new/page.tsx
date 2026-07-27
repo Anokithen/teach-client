@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/Card';
 import { Input, Select, Textarea } from '@/components/ui/Input';
 import { AiModel, ApiErrorShape, ReadingLevel } from '@/lib/types';
 import { isAllowedUploadFile, uploadFormatError } from '@/lib/file-validation';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 const AGE_GROUPS = ['3-5', '6-8', '9-11', '12+'];
 
@@ -156,8 +157,7 @@ export default function NewBookPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-semibold text-brand-900">Add a book</h1>
-      <p className="mt-1 text-sm text-muted">Each new book automatically receives word puzzle, spelling, and an AI-generated story word quiz based on its content.</p>
+      <PageHeader eyebrow="Library studio" title="Add a book" icon="📖" description="Each new book automatically receives word puzzle, spelling, and an AI-generated story word quiz based on its content." />
       <Card className="sparkle-book-card mt-6 overflow-hidden">
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="rounded-2xl bg-brand-400/10 p-4">

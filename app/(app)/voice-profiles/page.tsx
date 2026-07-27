@@ -14,6 +14,7 @@ import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/lib/auth-context';
 import { ApiErrorShape, VoiceProfile, VoiceProfileStatus } from '@/lib/types';
 import { isAllowedUploadFile, uploadFormatError } from '@/lib/file-validation';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 const MAX_BYTES = 25 * 1024 * 1024;
 const STATUS_TONE: Record<VoiceProfileStatus, 'warning' | 'success' | 'danger'> = {
@@ -277,7 +278,7 @@ export default function VoiceProfilesPage() {
   }
 
   return <div>
-    <h1 className="text-2xl font-semibold text-brand-900">Voice profiles</h1>
+    <PageHeader eyebrow="Familiar voices" title="Voice profiles" icon="🎙️" description="Create a warm, familiar audio experience for every reading adventure." />
     <p className="mt-1 text-sm text-muted">Create a private ElevenLabs voice clone for book reading. Recordings are available only to their owner and administrators.</p>
     <div className="mt-6 grid gap-6 lg:grid-cols-3">
       <Card className="lg:col-span-2">
