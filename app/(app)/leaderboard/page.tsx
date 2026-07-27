@@ -91,18 +91,18 @@ export default function LeaderboardPage() {
 
   return (
     <div className="space-y-6">
-      <section className="relative isolate overflow-hidden rounded-3xl border border-brand-400/30 bg-gradient-to-br from-brand-900 via-brand-600 to-violet-600 p-6 text-white shadow-card sm:p-8">
+      <section className="leaderboard-hero relative isolate overflow-hidden rounded-3xl border border-brand-400/30 p-6 shadow-card sm:p-8">
         <div className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full border-[24px] border-white/10" />
         <div className="pointer-events-none absolute -bottom-20 right-28 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl" />
         <span className="absolute right-24 top-8 text-xl text-amber-300" aria-hidden="true">✦</span>
         <span className="absolute bottom-8 right-12 text-sm text-cyan-200" aria-hidden="true">✦</span>
         <div className="relative z-10 flex flex-col gap-7 sm:flex-row sm:items-center sm:justify-between">
           <div className="max-w-2xl">
-            <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[.18em] text-cyan-100">Leaderboard</span>
-            <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">Leaderboard</h1>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-blue-100 sm:text-base">Celebrate our amazing young readers! Keep reading, earning points, and climbing to the top!</p>
+            <span className="soft-pill inline-flex bg-brand-400/15 px-3 py-1 text-xs font-semibold uppercase tracking-[.18em] text-brand-600">Leaderboard</span>
+            <h1 className="mt-4 text-3xl font-black tracking-tight text-brand-900 sm:text-4xl">Leaderboard ✦</h1>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-muted sm:text-base">Celebrate our amazing young readers! Keep reading, earning points, and climbing to the top!</p>
           </div>
-          <div className="relative grid h-32 w-32 shrink-0 place-items-center self-center rounded-full border border-white/20 bg-white/10 text-7xl shadow-inner sm:mr-8" aria-label="Trophy illustration" role="img">
+          <div className="soft-inset relative grid h-32 w-32 shrink-0 place-items-center self-center rounded-full text-7xl sm:mr-8" aria-label="Trophy illustration" role="img">
             🏆
             <span className="absolute -right-4 top-1 text-lg text-amber-300" aria-hidden="true">✦</span>
             <span className="absolute -bottom-1 -left-2 text-sm text-cyan-200" aria-hidden="true">●</span>
@@ -129,8 +129,8 @@ export default function LeaderboardPage() {
 
       {data && entries.length > 0 && (
         <>
-          <section aria-labelledby="podium-heading" className="rounded-3xl border border-border/60 bg-gradient-to-b from-brand-900/90 to-surface/90 p-4 shadow-card sm:p-6">
-            <div className="mb-5 flex items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[.16em] text-brand-400">This week&apos;s stars</p><h2 id="podium-heading" className="mt-1 text-xl font-bold text-brand-900">Top readers</h2></div><span className="text-2xl" aria-hidden="true">✨</span></div>
+          <section aria-labelledby="podium-heading" className="leaderboard-board rounded-3xl border border-border/60 p-4 shadow-card sm:p-6">
+            <div className="mb-5 flex items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[.16em] text-brand-600">This week&apos;s stars</p><h2 id="podium-heading" className="mt-1 text-xl font-bold text-brand-900">Top readers</h2></div><span className="text-2xl" aria-hidden="true">✨</span></div>
             <div className="flex flex-col items-stretch justify-end gap-4 lg:flex-row lg:items-end lg:gap-5">
               {(['second', 'first', 'third'] as PodiumPosition[]).map((position, index) => {
                 const entry = podium[position === 'first' ? 0 : position === 'second' ? 1 : 2];
