@@ -28,7 +28,7 @@ export function Sidebar({ open, collapsed, onClose }: SidebarProps) {
         />
       )}
       <aside
-          className={`sidebar-kids fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-white/10 p-5 transition-all lg:static lg:translate-x-0 ${collapsed ? 'lg:w-20 lg:px-3' : 'lg:w-64'} ${
+          className={`sidebar-kids fixed inset-y-4 left-4 z-50 flex w-[calc(100vw-2rem)] flex-col p-5 transition-all lg:static lg:inset-y-auto lg:left-auto lg:w-[276px] lg:shrink-0 lg:translate-x-0 ${collapsed ? 'lg:w-20 lg:px-3' : ''} ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -62,7 +62,10 @@ export function Sidebar({ open, collapsed, onClose }: SidebarProps) {
             );
           })}
         </nav>
-        <p className={`px-1 text-xs text-blue-200 ${collapsed ? 'lg:hidden' : ''}`}>Learn. Listen. Grow. ✦</p>
+        <div className={`mt-5 rounded-2xl border border-white/10 bg-white/10 p-3 text-xs text-blue-100 ${collapsed ? 'lg:hidden' : ''}`}>
+          <p className="font-bold text-white">Read · Learn · Shine</p>
+          <p className="mt-1 leading-5 text-blue-100/80">A little story every day makes a big difference.</p>
+        </div>
       </aside>
     </>
   );

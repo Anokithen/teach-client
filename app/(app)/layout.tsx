@@ -12,15 +12,15 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <AuthGuard>
-      <div className="app-shell flex min-h-screen min-w-0 overflow-x-clip bg-bg">
+      <div className="app-shell flex min-h-screen min-w-0 overflow-x-clip">
         <Sidebar open={sidebarOpen} collapsed={sidebarCollapsed} onClose={() => setSidebarOpen(false)} />
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col app-content-surface overflow-hidden">
           <Topbar
             onMenuClick={() => setSidebarOpen(true)}
             sidebarCollapsed={sidebarCollapsed}
             onSidebarToggle={() => setSidebarCollapsed((value) => !value)}
           />
-          <main className="min-w-0 flex-1 bg-bg/95 px-3 py-5 sm:px-4 sm:py-6 lg:px-8 lg:py-8">
+          <main className="min-w-0 flex-1 bg-transparent px-3 py-5 sm:px-5 sm:py-6 lg:px-8 lg:py-8">
             <div className="mx-auto max-w-7xl motion-safe:animate-[fade-slide-in_.25s_ease-out]">{children}</div>
           </main>
         </div>

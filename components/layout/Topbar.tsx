@@ -34,12 +34,12 @@ export function Topbar({ onMenuClick, sidebarCollapsed, onSidebarToggle }: Topba
   }
 
   return (
-    <header className="sticky top-0 z-30 flex w-full min-w-0 shrink-0 items-center justify-between gap-2 border-b border-brand-900/10 bg-brand-900/95 px-3 py-3 text-white shadow-sm backdrop-blur sm:px-4 lg:px-8">
+    <header className="sticky top-0 z-30 flex w-full min-w-0 shrink-0 items-center justify-between gap-2 border-b border-border/60 bg-white/85 px-3 py-3 text-brand-900 backdrop-blur sm:px-5 lg:px-8">
       <div className="flex min-w-0 items-center gap-1.5 lg:hidden">
         <button
           type="button"
           onClick={onMenuClick}
-          className="shrink-0 rounded-lg p-2 text-white transition-transform hover:bg-white/10 active:scale-90"
+          className="soft-inset shrink-0 rounded-xl p-2 text-brand-900 transition-transform hover:bg-white active:scale-90"
           aria-label="Open menu"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -60,7 +60,7 @@ export function Topbar({ onMenuClick, sidebarCollapsed, onSidebarToggle }: Topba
         <button
           type="button"
           onClick={toggleTheme}
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/20 bg-white/10 text-lg text-white shadow-inner transition hover:bg-white/20 active:scale-90"
+          className="soft-inset grid h-10 w-10 shrink-0 place-items-center rounded-2xl text-lg transition hover:bg-white active:scale-90"
           aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
           title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
         >
@@ -70,7 +70,7 @@ export function Topbar({ onMenuClick, sidebarCollapsed, onSidebarToggle }: Topba
         <button
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
-          className="flex max-w-[calc(100vw-5.5rem)] items-center gap-2 rounded-full border border-white/20 bg-white/10 px-2 py-2 text-left text-sm font-medium text-white shadow-inner transition hover:bg-white/20 active:scale-[.98] focus:outline-none focus:ring-2 focus:ring-brand-400 sm:max-w-none sm:gap-3 sm:px-3"
+          className="soft-inset flex max-w-[calc(100vw-5.5rem)] items-center gap-2 rounded-full px-2 py-2 text-left text-sm font-medium text-brand-900 transition hover:bg-white active:scale-[.98] focus:outline-none focus:ring-2 focus:ring-brand-400 sm:max-w-none sm:gap-3 sm:px-3"
           aria-expanded={menuOpen}
           aria-label="Open profile menu"
         >
@@ -86,7 +86,7 @@ export function Topbar({ onMenuClick, sidebarCollapsed, onSidebarToggle }: Topba
             <span className="max-w-[145px] truncate font-semibold leading-tight">{account?.name || 'My profile'}</span>
             <span className="mt-0.5 text-xs capitalize text-cyan-100">{account?.role || 'Account'}</span>
           </span>
-          <svg className={`h-4 w-4 shrink-0 text-cyan-100 transition-transform ${menuOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <svg className={`h-4 w-4 shrink-0 text-muted transition-transform ${menuOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
