@@ -104,7 +104,6 @@ api.interceptors.response.use(
       originalRequest?.url?.includes('/api/auth/register') ||
       originalRequest?.url?.includes('/api/auth/refresh') ||
       originalRequest?.url?.includes('/api/auth/logout') ||
-      originalRequest?.url?.includes('/exit-password') ||
       isAccountCredentialCheck ||
       (originalRequest?.url?.includes('/api/children/') && originalRequest?.url?.includes('/verify-pin'));
 

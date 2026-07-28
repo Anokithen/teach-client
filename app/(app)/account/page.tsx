@@ -1,7 +1,7 @@
 'use client';
 
 import { ChangeEvent, FormEvent, useRef, useState } from 'react';
-import { LockKeyhole, ShieldCheck, UserCircle } from 'lucide-react';
+import { UserCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { accountApi } from '@/lib/endpoints';
 import { clearTokens } from '@/lib/api';
@@ -24,12 +24,6 @@ interface AccountForm {
   currentPassword: string;
 }
 
-interface ExitPasswordForm {
-  currentPassword: string;
-  exitPassword: string;
-  confirmExitPassword: string;
-}
-
 export default function AccountPage() {
   const { account, refreshAccount } = useAuth();
   const router = useRouter();
@@ -50,19 +44,6 @@ export default function AccountPage() {
   const [deleting, setDeleting] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [exitPasswordForm, setExitPasswordForm] =
-    useState<ExitPasswordForm>({
-      currentPassword: '',
-      exitPassword: '',
-      confirmExitPassword: '',
-    });
-  const [exitPasswordSaving, setExitPasswordSaving] = useState(false);
-  const [exitPasswordError, setExitPasswordError] = useState<
-    string | string[] | null
-  >(null);
-  const [exitPasswordSaved, setExitPasswordSaved] = useState<string | null>(
-    null,
-  );
 
   async function onSave(e: FormEvent) {
     e.preventDefault();
@@ -151,72 +132,6 @@ export default function AccountPage() {
     }
   }
 
-  async function onSaveExitPassword(event: FormEvent) {
-    event.preventDefault();
-    setExitPasswordError(null);
-    setExitPasswordSaved(null);
-    if (exitPasswordForm.exitPassword !== exitPasswordForm.confirmExitPassword) {
-      setExitPasswordError('The exit passwords do not match.');
-      return;
-    }
-    setExitPasswordSaving(true);
-    try {
-      await accountApi.setExitPassword({
-        current_password: exitPasswordForm.currentPassword,
-        exit_password: exitPasswordForm.exitPassword,
-      });
-      await refreshAccount();
-      setExitPasswordForm({
-        currentPassword: '',
-        exitPassword: '',
-        confirmExitPassword: '',
-      });
-      setExitPasswordSaved(
-        account?.has_exit_password
-          ? 'Exit password changed.'
-          : 'Exit password enabled.',
-      );
-    } catch (err) {
-      const apiError = err as ApiErrorShape;
-      setExitPasswordError(
-        apiError.fields?.length ? apiError.fields : apiError.message,
-      );
-    } finally {
-      setExitPasswordSaving(false);
-    }
-  }
-
-  async function onRemoveExitPassword() {
-    setExitPasswordError(null);
-    setExitPasswordSaved(null);
-    if (!exitPasswordForm.currentPassword) {
-      setExitPasswordError(
-        'Enter your current account password before removing exit protection.',
-      );
-      return;
-    }
-    setExitPasswordSaving(true);
-    try {
-      await accountApi.removeExitPassword({
-        current_password: exitPasswordForm.currentPassword,
-      });
-      await refreshAccount();
-      setExitPasswordForm({
-        currentPassword: '',
-        exitPassword: '',
-        confirmExitPassword: '',
-      });
-      setExitPasswordSaved('Exit password removed.');
-    } catch (err) {
-      const apiError = err as ApiErrorShape;
-      setExitPasswordError(
-        apiError.fields?.length ? apiError.fields : apiError.message,
-      );
-    } finally {
-      setExitPasswordSaving(false);
-    }
-  }
-
   if (!account) return null;
 
   return (
@@ -289,112 +204,6 @@ export default function AccountPage() {
             Save changes
           </Button>
         </form>
-      </Card>
-
-      <Card className="mt-6">
-        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <span className="icon-bubble mt-0.5 h-10 w-10 shrink-0 text-brand-600">
-              {account.has_exit_password ? (
-                <ShieldCheck className="h-5 w-5" aria-hidden="true" />
-              ) : (
-                <LockKeyhole className="h-5 w-5" aria-hidden="true" />
-              )}
-            </span>
-            <div>
-              <h2 className="font-semibold text-brand-900">Exit protection</h2>
-              <p className="mt-1 text-sm text-muted">
-                Require a separate password before the in-app Exit app action
-                can sign out.
-              </p>
-            </div>
-          </div>
-          <Badge tone={account.has_exit_password ? 'success' : 'warning'}>
-            {account.has_exit_password ? 'Protected' : 'Not enabled'}
-          </Badge>
-        </div>
-
-        <form onSubmit={onSaveExitPassword} className="space-y-4">
-          <Input
-            id="exit-current-account-password"
-            label="Current account password"
-            type="password"
-            autoComplete="current-password"
-            required
-            maxLength={128}
-            value={exitPasswordForm.currentPassword}
-            onChange={(event) =>
-              setExitPasswordForm({
-                ...exitPasswordForm,
-                currentPassword: event.target.value,
-              })
-            }
-          />
-          <Input
-            id="new-exit-password"
-            label={
-              account.has_exit_password
-                ? 'New exit password'
-                : 'Create exit password'
-            }
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={8}
-            maxLength={128}
-            value={exitPasswordForm.exitPassword}
-            onChange={(event) =>
-              setExitPasswordForm({
-                ...exitPasswordForm,
-                exitPassword: event.target.value,
-              })
-            }
-          />
-          <Input
-            id="confirm-exit-password"
-            label="Confirm exit password"
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={8}
-            maxLength={128}
-            value={exitPasswordForm.confirmExitPassword}
-            onChange={(event) =>
-              setExitPasswordForm({
-                ...exitPasswordForm,
-                confirmExitPassword: event.target.value,
-              })
-            }
-          />
-          <Alert>{exitPasswordError}</Alert>
-          {exitPasswordSaved && (
-            <Alert tone="success">{exitPasswordSaved}</Alert>
-          )}
-          <div className="flex flex-wrap gap-3">
-            <Button type="submit" loading={exitPasswordSaving}>
-              {account.has_exit_password
-                ? 'Change exit password'
-                : 'Enable exit password'}
-            </Button>
-            {account.has_exit_password && (
-              <Button
-                type="button"
-                variant="ghost"
-                disabled={exitPasswordSaving}
-                onClick={onRemoveExitPassword}
-              >
-                Remove protection
-              </Button>
-            )}
-          </div>
-        </form>
-
-        <p className="mt-4 rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-xs leading-5 text-muted">
-          This protects TeachAlike&apos;s own exit control. A PWA cannot block
-          the device Home button, app switching, force-closing, or browser
-          controls. Use Android App Pinning, iOS Guided Access, or managed kiosk
-          mode for device-level locking.
-        </p>
       </Card>
 
       {account.role === 'parent' && <PwaInstallCard />}

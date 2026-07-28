@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { ChevronDown, LogOut, Menu, Moon, Sun, UserRound } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { Logo } from '@/components/layout/Logo';
-import { ExitPasswordDialog } from '@/components/account/ExitPasswordDialog';
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -14,7 +13,6 @@ interface TopbarProps {
 export function Topbar({ onMenuClick }: TopbarProps) {
   const { account, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [exitDialogOpen, setExitDialogOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -36,10 +34,6 @@ export function Topbar({ onMenuClick }: TopbarProps) {
 
   function requestExit() {
     setMenuOpen(false);
-    if (account?.has_exit_password) {
-      setExitDialogOpen(true);
-      return;
-    }
     void logout();
   }
 
@@ -126,11 +120,6 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         </div>
       </div>
       </header>
-      <ExitPasswordDialog
-        open={exitDialogOpen}
-        onClose={() => setExitDialogOpen(false)}
-        onConfirm={logout}
-      />
     </>
   );
 }
