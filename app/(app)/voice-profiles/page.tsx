@@ -27,7 +27,8 @@ import { ApiErrorShape, VoiceProfile, VoiceProfileStatus } from '@/lib/types';
 import { isAllowedUploadFile, uploadFormatError } from '@/lib/file-validation';
 import { PageHeader } from '@/components/ui/PageHeader';
 
-const MAX_BYTES = 25 * 1024 * 1024;
+// Keep the browser-side guard aligned with MAX_VOICE_PROFILE_SIZE_MB.
+const MAX_BYTES = 50 * 1024 * 1024;
 const STATUS_TONE: Record<VoiceProfileStatus, 'warning' | 'success' | 'danger'> = {
   processing: 'warning', ready: 'success', failed: 'danger',
 };
@@ -150,7 +151,7 @@ export default function VoiceProfilesPage() {
     }
     if (selected.size > MAX_BYTES) {
       setFile(null);
-      return setCreateError('The recording must be smaller than 25 MB.');
+      return setCreateError('The recording must be no larger than 50 MB.');
     }
     setFile(selected);
   }
@@ -217,7 +218,7 @@ export default function VoiceProfilesPage() {
         try {
           const wavBlob = await convertRecordingToWav(recordedBlob);
           if (wavBlob.size > MAX_BYTES) {
-            setCreateError('The WAV recording must be smaller than 25 MB.');
+            setCreateError('The WAV recording must be no larger than 50 MB.');
             return;
           }
           const recordedFile = new File([wavBlob], `voice-recording-${Date.now()}.wav`, { type: 'audio/wav' });
@@ -342,7 +343,7 @@ export default function VoiceProfilesPage() {
             <span className="text-sm font-semibold text-brand-900">Or upload an existing recording</span>
             <input ref={fileInput} type="file" accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/wave,audio/vnd.wave,audio/webm,audio/ogg,audio/mp4,audio/x-m4a,video/mp4,.mp3,.wav,.webm,.ogg,.m4a,.mp4" onChange={onFileChange} className="sr-only" />
             <span className="voice-file-picker mt-2 flex cursor-pointer items-center justify-between gap-3 rounded-xl border-2 border-dashed border-violet-300 bg-gradient-to-r from-violet-50 via-fuchsia-50 to-amber-50 px-4 py-3 transition hover:border-brand-400 hover:shadow-sm">
-              <span className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white"><Upload className="h-5 w-5" aria-hidden="true" /></span><span><span className="block text-sm font-semibold text-violet-700">Choose audio file</span><span className="block text-xs text-muted">Tap to browse your device</span></span></span>
+              <span className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white"><Upload className="h-5 w-5" aria-hidden="true" /></span><span><span className="block text-sm font-semibold text-violet-700">Choose audio file</span><span className="block text-xs text-muted">MP3, WAV, WebM, OGG, M4A, or MP4 · up to 50 MB</span></span></span>
               <span className="max-w-28 truncate text-xs font-medium text-brand-600">{file?.name || 'No file chosen'}</span>
             </span>
           </label>

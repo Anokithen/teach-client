@@ -11,7 +11,7 @@ const ALLOWED_UPLOAD_FORMATS: Record<UploadMediaType, { extensions: string[]; mi
   },
   audio: {
     extensions: ['mp3', 'wav', 'webm', 'ogg', 'm4a', 'mp4'],
-    mimeTypes: ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/wave', 'audio/vnd.wave', 'audio/webm', 'audio/ogg', 'audio/mp4', 'audio/x-m4a', 'video/mp4'],
+    mimeTypes: ['audio/mpeg', 'audio/mp3', 'audio/x-mpeg', 'audio/x-mp3', 'audio/mpeg3', 'audio/x-mpeg3', 'audio/wav', 'audio/x-wav', 'audio/wave', 'audio/vnd.wave', 'audio/webm', 'audio/ogg', 'audio/mp4', 'audio/x-m4a', 'video/mp4'],
   },
 };
 
@@ -22,7 +22,10 @@ function fileExtension(file: File) {
 export function isAllowedUploadFile(file: File, mediaType: UploadMediaType) {
   const formats = ALLOWED_UPLOAD_FORMATS[mediaType];
   const mimeType = file.type.toLowerCase().split(';', 1)[0];
-  return formats.extensions.includes(fileExtension(file)) && formats.mimeTypes.includes(mimeType);
+  const genericAudioType =
+    mediaType === 'audio' && (!mimeType || mimeType === 'application/octet-stream');
+  return formats.extensions.includes(fileExtension(file)) &&
+    (formats.mimeTypes.includes(mimeType) || genericAudioType);
 }
 
 export function allowedUploadFormats(mediaType: UploadMediaType) {

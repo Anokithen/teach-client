@@ -88,7 +88,12 @@ export const sessionsApi = {
 export const voiceProfilesApi = {
   list: () => api.get('/api/voice-profiles'),
   create: (payload: FormData) =>
-    api.post('/api/voice-profiles', payload, { headers: { 'Content-Type': 'multipart/form-data' } }),
+    api.post('/api/voice-profiles', payload, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      // This includes protected storage and voice cloning. Large valid audio
+      // must not inherit the general API client's 60-second timeout.
+      timeout: 0,
+    }),
   status: (id: number | string) => api.get(`/api/voice-profiles/${id}/status`),
   // Audio is proxied as a protected stream and may legitimately take longer
   // than the default API timeout on slower connections.
