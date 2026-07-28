@@ -59,7 +59,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 }`}
               >
                 <NavIcon href={item.href} active={active} />
-                <span className={collapsed ? 'lg:hidden' : ''}>{item.label}</span>
+                <span>{item.label}</span>
               </Link>
             );
           })}
