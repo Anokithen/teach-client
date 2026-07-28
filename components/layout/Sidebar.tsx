@@ -29,7 +29,7 @@ export function Sidebar({ open, collapsed, onClose }: SidebarProps) {
       )}
       <aside
           className={`sidebar-kids fixed inset-y-4 left-4 z-50 flex max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] flex-col overflow-y-auto overscroll-contain p-5 transition-all lg:sticky lg:top-4 lg:h-[calc(100vh-2rem)] lg:max-h-none lg:inset-y-auto lg:left-auto lg:w-[276px] lg:shrink-0 lg:translate-x-0 ${collapsed ? 'lg:w-20 lg:px-3' : ''} ${
-          open ? 'translate-x-0' : '-translate-x-full'
+          open ? 'translate-x-0' : '-translate-x-[calc(100%+1rem)] pointer-events-none lg:pointer-events-auto'
         }`}
       >
         <div className={`mb-8 shrink-0 px-1 ${collapsed ? 'lg:flex lg:justify-center' : ''}`}>
