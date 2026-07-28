@@ -39,6 +39,7 @@ function getStandaloneMode() {
   const iosNavigator = window.navigator as Navigator & { standalone?: boolean };
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
     iosNavigator.standalone === true
   );
 }
@@ -52,7 +53,8 @@ export function PwaProvider({ children }: { children: ReactNode }) {
   const reloadForUpdate = useRef(false);
 
   useEffect(() => {
-    const displayMode = window.matchMedia('(display-mode: standalone)');
+    const standaloneMode = window.matchMedia('(display-mode: standalone)');
+    const fullscreenMode = window.matchMedia('(display-mode: fullscreen)');
     const updateStandaloneMode = () => setIsStandalone(getStandaloneMode());
     const onBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
@@ -69,12 +71,14 @@ export function PwaProvider({ children }: { children: ReactNode }) {
     };
 
     updateStandaloneMode();
-    displayMode.addEventListener('change', updateStandaloneMode);
+    standaloneMode.addEventListener('change', updateStandaloneMode);
+    fullscreenMode.addEventListener('change', updateStandaloneMode);
     window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt);
     window.addEventListener('appinstalled', onAppInstalled);
 
     return () => {
-      displayMode.removeEventListener('change', updateStandaloneMode);
+      standaloneMode.removeEventListener('change', updateStandaloneMode);
+      fullscreenMode.removeEventListener('change', updateStandaloneMode);
       window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt);
       window.removeEventListener('appinstalled', onAppInstalled);
     };

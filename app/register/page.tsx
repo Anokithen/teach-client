@@ -47,7 +47,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="auth-page flex min-h-screen items-center justify-center bg-bg px-4 py-12">
+    <div className="auth-page flex min-h-[100dvh] items-center justify-center bg-bg px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex justify-center">
           <Logo />

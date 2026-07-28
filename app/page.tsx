@@ -34,7 +34,7 @@ export default function LandingPage() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="home-night min-h-screen">
+    <div className="home-night min-h-[100dvh]">
       <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-5 sm:px-6 sm:py-6">
         <Logo />
         <nav className="ml-auto flex items-center gap-2 sm:gap-3">

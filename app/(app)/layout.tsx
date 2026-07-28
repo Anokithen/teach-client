@@ -11,7 +11,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <AuthGuard>
-      <div className="app-shell flex min-h-screen min-w-0 overflow-x-clip">
+      <div className="app-shell flex min-h-[100dvh] min-w-0 overflow-x-clip">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="flex min-w-0 flex-1 flex-col app-content-surface overflow-hidden lg:ml-[308px]">
           <Topbar
