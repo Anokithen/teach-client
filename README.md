@@ -14,6 +14,21 @@ npm run dev
 Runs at http://localhost:3000. Point `NEXT_PUBLIC_API_URL` at wherever `core` (the
 Flask backend) is running, e.g. `http://localhost:5000`.
 
+## Progressive Web App
+
+The production build is installable as a PWA. It includes:
+
+- a web app manifest with standard, maskable, and Apple install icons;
+- a root-scoped service worker registered only in production;
+- offline caching for versioned Next.js static assets and brand icons; and
+- a dedicated offline fallback page for navigation requests.
+
+Authenticated API requests and page responses are deliberately not cached, so
+account and child data are not persisted by the service worker. Deploy over
+HTTPS for installation and service-worker support; browsers also allow these
+features on `localhost` during development. When changing the service worker's
+precache behavior, increment `CACHE_VERSION` in `public/sw.js`.
+
 ## What's here
 
 - `lib/api.ts` — single axios instance: attaches the bearer token on every request,
