@@ -49,18 +49,30 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 interface BackendErrorData {
   errors?: string[];
   error?: string;
+  message?: string;
+}
+
+function normalizeBackendErrorData(
+  data: BackendErrorData | undefined,
+  status?: number,
+): ApiErrorShape | null {
+  if (data?.errors && Array.isArray(data.errors)) {
+    return { message: data.errors.join(' '), fields: data.errors, status };
+  }
+  if (data?.error) {
+    return { message: data.error, fields: [data.error], status };
+  }
+  if (data?.message) {
+    return { message: data.message, fields: [data.message], status };
+  }
+  return null;
 }
 
 // Normalize backend error shapes into a single { message, fields } error object.
 export function normalizeError(error: AxiosError<BackendErrorData> | unknown): ApiErrorShape {
   const err = error as AxiosError<BackendErrorData>;
-  const data = err?.response?.data;
-  if (data?.errors && Array.isArray(data.errors)) {
-    return { message: data.errors.join(' '), fields: data.errors, status: err.response?.status };
-  }
-  if (data?.error) {
-    return { message: data.error, fields: [data.error], status: err.response?.status };
-  }
+  const backendError = normalizeBackendErrorData(err?.response?.data, err?.response?.status);
+  if (backendError) return backendError;
   if (err?.code === 'ECONNABORTED') {
     return { message: 'The request took too long. Please check your connection and try again.', fields: [], status: err?.response?.status };
   }
@@ -68,6 +80,26 @@ export function normalizeError(error: AxiosError<BackendErrorData> | unknown): A
     return { message: error.message, fields: [error.message], status: err?.response?.status };
   }
   return { message: 'Something went wrong. Please try again.', fields: [], status: err?.response?.status };
+}
+
+// Axios returns error responses as Blob objects when responseType is "blob".
+// Decode a JSON error body so audio playback failures retain the API's useful
+// message instead of becoming a generic browser "Network Error".
+async function normalizeResponseError(error: unknown): Promise<ApiErrorShape> {
+  const err = error as AxiosError<BackendErrorData | Blob>;
+  const data = err?.response?.data;
+
+  if (typeof Blob !== 'undefined' && data instanceof Blob) {
+    try {
+      const parsed = JSON.parse(await data.text()) as BackendErrorData;
+      const backendError = normalizeBackendErrorData(parsed, err.response?.status);
+      if (backendError) return backendError;
+    } catch {
+      // Non-JSON error blobs fall through to the standard Axios error.
+    }
+  }
+
+  return normalizeError(error);
 }
 
 interface RetryableRequestConfig extends InternalAxiosRequestConfig {
@@ -88,7 +120,7 @@ function flushQueue(err: unknown, token: string | null) {
 // On 401, try a single silent refresh, then retry the original request once.
 api.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError<BackendErrorData>) => {
+  async (error: AxiosError<BackendErrorData | Blob>) => {
     const originalRequest = error.config as RetryableRequestConfig | undefined;
     const status = error.response?.status;
     const isAccountCredentialCheck =
@@ -112,7 +144,7 @@ api.interceptors.response.use(
       if (!refreshToken) {
         clearTokens();
         redirectToLogin();
-        return Promise.reject(normalizeError(error));
+        return Promise.reject(await normalizeResponseError(error));
       }
 
       if (isRefreshing) {
@@ -145,13 +177,13 @@ api.interceptors.response.use(
         flushQueue(refreshError, null);
         clearTokens();
         redirectToLogin();
-        return Promise.reject(normalizeError(refreshError));
+        return Promise.reject(await normalizeResponseError(refreshError));
       } finally {
         isRefreshing = false;
       }
     }
 
-    return Promise.reject(normalizeError(error));
+    return Promise.reject(await normalizeResponseError(error));
   }
 );
 

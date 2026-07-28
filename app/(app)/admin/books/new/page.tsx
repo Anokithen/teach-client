@@ -84,6 +84,14 @@ export default function NewBookPage() {
     setIllustrationFiles(files.slice(0, 8));
   }
 
+  function resetBookForm() {
+    setForm({ title: '', age_group: '3-5', reading_level: 'beginner', text_content: '', content_url: '', cover_image_url: '', video_url: '' });
+    setCoverFile(null);
+    setIllustrationFiles([]);
+    setVideoFile(null);
+    setMediaInputKey((value) => value + 1);
+  }
+
   async function generateStory() {
     setError(null);
     if (!storyIdea.trim()) {
@@ -117,6 +125,7 @@ export default function NewBookPage() {
     setError(null);
     setCreatedBookId(null);
     setLoading(true);
+    let savedBookId: number | null = null;
     try {
       // Upload each asset in sequence. Cloudinary and the API endpoint each
       // receive one file per request, and sequential uploads avoid making all
@@ -141,6 +150,7 @@ export default function NewBookPage() {
         video_url: videoFile ? '' : form.video_url,
       });
       const bookId = res.data.book.id as number;
+      savedBookId = bookId;
       setCreatedBookId(bookId);
 
       if (videoFile) {
@@ -150,14 +160,21 @@ export default function NewBookPage() {
         await adminApi.uploadBookVideo(bookId, video);
       }
 
-      setForm({ title: '', age_group: '3-5', reading_level: 'beginner', text_content: '', content_url: '', cover_image_url: '', video_url: '' });
-      setCoverFile(null);
-      setIllustrationFiles([]);
-      setVideoFile(null);
-      setMediaInputKey((value) => value + 1);
+      resetBookForm();
     } catch (err) {
       const apiErr = err as ApiErrorShape;
-      setError(apiErr.fields?.length ? apiErr.fields : apiErr.message);
+      if (savedBookId) {
+        // The book transaction already succeeded. Clear the form so retrying
+        // the failed video upload cannot accidentally create a duplicate book.
+        resetBookForm();
+        setError(
+          `Book #${savedBookId} was created, but its video could not be uploaded. ${
+            apiErr.message || 'You can add a video URL when editing the book.'
+          }`,
+        );
+      } else {
+        setError(apiErr.fields?.length ? apiErr.fields : apiErr.message);
+      }
     } finally {
       setLoading(false);
       setUploadStatus(null);

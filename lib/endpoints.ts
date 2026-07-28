@@ -90,7 +90,10 @@ export const voiceProfilesApi = {
   create: (payload: FormData) =>
     api.post('/api/voice-profiles', payload, { headers: { 'Content-Type': 'multipart/form-data' } }),
   status: (id: number | string) => api.get(`/api/voice-profiles/${id}/status`),
-  audio: (id: number | string) => api.get(`/api/voice-profiles/${id}/audio`, { responseType: 'blob' }),
+  // Audio is proxied as a protected stream and may legitimately take longer
+  // than the default API timeout on slower connections.
+  audio: (id: number | string) =>
+    api.get(`/api/voice-profiles/${id}/audio`, { responseType: 'blob', timeout: 0 }),
   update: (id: number | string, payload: { label: string }) => api.patch(`/api/voice-profiles/${id}`, payload),
   remove: (id: number | string) => api.delete(`/api/voice-profiles/${id}`),
 };
@@ -101,7 +104,8 @@ export const bookNarrationsApi = {
     api.post(`/api/books/${bookId}/narrations`, payload),
   list: (bookId: number | string) => api.get(`/api/books/${bookId}/narrations`),
   status: (id: number | string) => api.get(`/api/book-narrations/${id}/status`),
-  audio: (id: number | string) => api.get(`/api/book-narrations/${id}/audio`, { responseType: 'blob' }),
+  audio: (id: number | string) =>
+    api.get(`/api/book-narrations/${id}/audio`, { responseType: 'blob', timeout: 0 }),
 };
 
 // ---- Leaderboard ----
