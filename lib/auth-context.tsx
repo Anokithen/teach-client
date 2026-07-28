@@ -16,7 +16,7 @@ interface AuthContextValue {
   isParent: boolean;
   login: (payload: { email: string; password: string }) => Promise<Account>;
   register: (payload: { name: string; email: string; password: string }) => Promise<Account>;
-  logout: () => Promise<void>;
+  logout: (exitPassword?: string) => Promise<void>;
   refreshAccount: () => Promise<Account>;
 }
 
@@ -64,16 +64,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(async (exitPassword?: string) => {
     try {
-      await authApi.logout(getRefreshToken());
+      await authApi.logout(getRefreshToken(), exitPassword);
     } catch (err) {
-      // ignore — we clear local state regardless
+      // An enabled exit lock must be verified by the API before local state is
+      // cleared. Accounts without a lock can still sign out while offline.
+      if (account?.has_exit_password) throw err;
     }
     clearTokens();
     setAccount(null);
     router.push('/login');
-  }, [router]);
+  }, [account?.has_exit_password, router]);
 
   const refreshAccount = useCallback(async () => {
     const res = await accountApi.me();

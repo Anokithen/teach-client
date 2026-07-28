@@ -12,6 +12,7 @@ export interface Account {
   role: Role;
   created_at: string;
   is_banned?: boolean;
+  has_exit_password?: boolean;
   profile_image_url?: string | null;
   children_count?: number;
 }

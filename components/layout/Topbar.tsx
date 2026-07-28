@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ChevronDown, LogOut, Menu, Moon, Sun, UserRound } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { Logo } from '@/components/layout/Logo';
+import { ExitPasswordDialog } from '@/components/account/ExitPasswordDialog';
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -13,6 +14,7 @@ interface TopbarProps {
 export function Topbar({ onMenuClick }: TopbarProps) {
   const { account, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [exitDialogOpen, setExitDialogOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -32,8 +34,18 @@ export function Topbar({ onMenuClick }: TopbarProps) {
     document.documentElement.style.colorScheme = nextDarkMode ? 'dark' : 'light';
   }
 
+  function requestExit() {
+    setMenuOpen(false);
+    if (account?.has_exit_password) {
+      setExitDialogOpen(true);
+      return;
+    }
+    void logout();
+  }
+
   return (
-    <header className="sticky top-0 z-30 flex w-full min-w-0 shrink-0 items-center justify-between gap-2 border-b border-border/60 bg-white/85 px-3 py-3 text-brand-900 backdrop-blur sm:px-5 lg:px-8">
+    <>
+      <header className="sticky top-0 z-30 flex w-full min-w-0 shrink-0 items-center justify-between gap-2 border-b border-border/60 bg-white/85 px-3 py-3 text-brand-900 backdrop-blur sm:px-5 lg:px-8">
       <div className="flex min-w-0 items-center gap-1.5 lg:hidden">
         <button
           type="button"
@@ -102,20 +114,23 @@ export function Topbar({ onMenuClick }: TopbarProps) {
               </Link>
               <button
                 type="button"
-                onClick={() => {
-                  setMenuOpen(false);
-                  logout();
-                }}
+                onClick={requestExit}
                 className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-danger transition-colors hover:bg-danger/5"
               >
                 <LogOut className="h-4 w-4" aria-hidden="true" />
-                Log out
+                Exit app
               </button>
             </div>
           </>
         )}
         </div>
       </div>
-    </header>
+      </header>
+      <ExitPasswordDialog
+        open={exitDialogOpen}
+        onClose={() => setExitDialogOpen(false)}
+        onConfirm={logout}
+      />
+    </>
   );
 }

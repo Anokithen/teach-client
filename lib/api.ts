@@ -98,6 +98,8 @@ api.interceptors.response.use(
       originalRequest?.url?.includes('/api/auth/login') ||
       originalRequest?.url?.includes('/api/auth/register') ||
       originalRequest?.url?.includes('/api/auth/refresh') ||
+      originalRequest?.url?.includes('/api/auth/logout') ||
+      originalRequest?.url?.includes('/exit-password') ||
       (originalRequest?.url?.includes('/api/children/') && originalRequest?.url?.includes('/verify-pin'));
 
     if (status === 401 && originalRequest && !originalRequest._retry && !isNonRefreshable401Route) {

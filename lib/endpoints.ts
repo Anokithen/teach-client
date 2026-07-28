@@ -6,8 +6,11 @@ export const authApi = {
   register: (payload: { name: string; email: string; password: string }) =>
     api.post('/api/auth/register', payload),
   login: (payload: { email: string; password: string }) => api.post('/api/auth/login', payload),
-  logout: (refreshToken?: string | null) =>
-    api.post('/api/auth/logout', refreshToken ? { refresh_token: refreshToken } : {}),
+  logout: (refreshToken?: string | null, exitPassword?: string) =>
+    api.post('/api/auth/logout', {
+      ...(refreshToken ? { refresh_token: refreshToken } : {}),
+      ...(exitPassword ? { exit_password: exitPassword } : {}),
+    }),
 };
 
 // ---- AI model discovery ----
@@ -20,6 +23,12 @@ export const accountApi = {
   me: () => api.get('/api/parents/me'),
   update: (payload: { name?: string; email?: string; password?: string }) =>
     api.patch('/api/parents/me', payload),
+  setExitPassword: (payload: {
+    current_password: string;
+    exit_password: string;
+  }) => api.patch('/api/parents/me/exit-password', payload),
+  removeExitPassword: (payload: { current_password: string }) =>
+    api.delete('/api/parents/me/exit-password', { data: payload }),
   uploadProfileImage: (payload: FormData) =>
     api.post('/api/parents/me/profile-image', payload, { headers: { 'Content-Type': 'multipart/form-data' } }),
   removeProfileImage: () => api.delete('/api/parents/me/profile-image'),
