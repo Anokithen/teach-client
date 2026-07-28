@@ -1,7 +1,7 @@
 /* global self, caches, fetch, URL, Response */
 
 const CACHE_PREFIX = 'teachalike-pwa';
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const STATIC_CACHE = `${CACHE_PREFIX}-static-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 const PRECACHE_URLS = [
@@ -9,17 +9,22 @@ const PRECACHE_URLS = [
   '/Teachalike_logo.png',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
+  '/icons/icon-maskable-192x192.png',
   '/icons/icon-maskable-512x512.png',
   '/icons/apple-touch-icon.png',
+  '/favicon.ico',
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches
-      .open(STATIC_CACHE)
-      .then((cache) => cache.addAll(PRECACHE_URLS))
-      .then(() => self.skipWaiting()),
+    caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE_URLS)),
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('activate', (event) => {
@@ -41,12 +46,16 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  if (request.method !== 'GET') {
+  if (request.method !== 'GET' || request.headers.has('Authorization')) {
     return;
   }
 
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) {
+  if (
+    url.origin !== self.location.origin ||
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/auth/')
+  ) {
     return;
   }
 

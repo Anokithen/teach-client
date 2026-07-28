@@ -26,8 +26,10 @@ The production build is installable as a PWA. It includes:
 Authenticated API requests and page responses are deliberately not cached, so
 account and child data are not persisted by the service worker. Deploy over
 HTTPS for installation and service-worker support; browsers also allow these
-features on `localhost` during development. When changing the service worker's
-precache behavior, increment `CACHE_VERSION` in `public/sw.js`.
+features on `localhost` during development. New workers wait instead of
+replacing a running version mid-session; parents can apply an available update
+from the account page. When changing the service worker's precache behavior,
+increment `CACHE_VERSION` in `public/sw.js`.
 
 ## What's here
 

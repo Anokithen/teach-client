@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import Script from 'next/script';
 import './globals.css';
-import { PwaRegistration } from '@/components/pwa/PwaRegistration';
+import { PwaProvider } from '@/components/pwa/PwaProvider';
 import { AuthProvider } from '@/lib/auth-context';
 
 export const metadata: Metadata = {
@@ -11,6 +11,9 @@ export const metadata: Metadata = {
     'TeachAlike is a reading-companion app for children: guided reading sessions, book-linked mini-games, and family voice profiles.',
   applicationName: 'TeachAlike',
   manifest: '/manifest.webmanifest',
+  other: {
+    'apple-mobile-web-app-capable': 'yes',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -67,8 +70,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         })()`}
       </Script>
       <body>
-        <PwaRegistration />
-        <AuthProvider>{children}</AuthProvider>
+        <PwaProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </PwaProvider>
       </body>
     </html>
   );

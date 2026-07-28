@@ -15,6 +15,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ApiErrorShape } from '@/lib/types';
 import { isAllowedUploadFile, uploadFormatError } from '@/lib/file-validation';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PwaInstallCard } from '@/components/pwa/PwaInstallCard';
 
 interface AccountForm {
   name: string;
@@ -170,6 +171,8 @@ export default function AccountPage() {
           </Button>
         </form>
       </Card>
+
+      {account.role === 'parent' && <PwaInstallCard />}
 
       <Card className="mt-6 border-danger/30">
         <h2 className="mb-1 text-sm font-semibold text-danger">Delete account</h2>
