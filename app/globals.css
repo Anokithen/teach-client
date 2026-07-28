@@ -330,6 +330,7 @@
   @keyframes fade-slide-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes modal-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
   @keyframes modal-card-in { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes exit-hold-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -339,6 +340,16 @@
       transition-duration: .01ms !important;
     }
   }
+}
+
+/*
+ * Disable Android's text-selection/callout UI only while the protected
+ * two-second exit gesture is active. Scrolling cancels the gesture.
+ */
+html.teachalike-exit-hold-active,
+html.teachalike-exit-hold-active * {
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 /*

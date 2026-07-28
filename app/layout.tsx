@@ -5,6 +5,7 @@ import './globals.css';
 import { PwaProvider } from '@/components/pwa/PwaProvider';
 import { FullscreenExitGuard } from '@/components/pwa/FullscreenExitGuard';
 import { AndroidBackExitGuard } from '@/components/pwa/AndroidBackExitGuard';
+import { AndroidLongPressExitGuard } from '@/components/pwa/AndroidLongPressExitGuard';
 import { AndroidAppPinningNotice } from '@/components/pwa/AndroidAppPinningNotice';
 import { AuthProvider } from '@/lib/auth-context';
 
@@ -78,6 +79,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             {children}
             <FullscreenExitGuard />
             <AndroidBackExitGuard />
+            <AndroidLongPressExitGuard />
           </AuthProvider>
           <AndroidAppPinningNotice />
         </PwaProvider>
