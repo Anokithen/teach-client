@@ -28,15 +28,17 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         />
       )}
       <aside
-          className={`sidebar-kids fixed inset-y-4 left-4 z-50 flex h-[calc(100vh-2rem)] w-[60vw] max-w-[360px] flex-col overflow-y-auto overscroll-contain p-5 transition-transform lg:inset-y-auto lg:left-4 lg:top-4 lg:h-[calc(100vh-2rem)] lg:w-[276px] lg:max-w-none lg:translate-x-0 ${
+          className={`sidebar-kids fixed inset-y-4 left-4 z-50 flex h-[calc(100vh-2rem)] w-[80vw] flex-col overflow-y-auto overscroll-contain p-5 transition-transform lg:inset-y-auto lg:left-4 lg:top-4 lg:h-[calc(100vh-2rem)] lg:w-[276px] lg:translate-x-0 ${
           open ? 'translate-x-0' : '-translate-x-[calc(100%+1rem)] pointer-events-none lg:pointer-events-auto'
         }`}
       >
         <div className="mb-8 shrink-0 px-1">
           <div className="flex items-center justify-between gap-2">
             <Logo />
-            <button type="button" onClick={onClose} className="rounded-lg p-2 text-cyan-100 transition-transform hover:bg-white/10 active:scale-90 lg:hidden" aria-label="Close menu">
-              <span aria-hidden="true" className="text-xl leading-none">×</span>
+            <button type="button" onClick={onClose} className="rounded-lg p-2 text-cyan-100 transition-transform hover:bg-white/10 active:scale-90 lg:hidden" aria-label="Go back and close menu">
+              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" aria-hidden="true">
+                <path d="m15 18-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
             <button type="button" onClick={() => router.push('/dashboard')} className="hidden rounded-lg p-2 text-cyan-100 transition-transform hover:bg-white/10 active:scale-90 lg:block" aria-label="Close sidebar and return to dashboard">
               <span aria-hidden="true" className="text-xl leading-none">×</span>
