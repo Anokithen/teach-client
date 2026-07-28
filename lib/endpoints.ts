@@ -27,6 +27,10 @@ export const accountApi = {
     current_password: string;
     exit_password: string;
   }) => api.patch('/api/parents/me/exit-password', payload),
+  verifyExitPassword: (exitPassword: string) =>
+    api.post('/api/parents/me/exit-password/verify', {
+      exit_password: exitPassword,
+    }),
   removeExitPassword: (payload: { current_password: string }) =>
     api.delete('/api/parents/me/exit-password', { data: payload }),
   uploadProfileImage: (payload: FormData) =>

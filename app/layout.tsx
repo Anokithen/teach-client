@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import Script from 'next/script';
 import './globals.css';
 import { PwaProvider } from '@/components/pwa/PwaProvider';
+import { FullscreenExitGuard } from '@/components/pwa/FullscreenExitGuard';
 import { AuthProvider } from '@/lib/auth-context';
 
 export const metadata: Metadata = {
@@ -71,7 +72,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </Script>
       <body>
         <PwaProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            {children}
+            <FullscreenExitGuard />
+          </AuthProvider>
         </PwaProvider>
       </body>
     </html>
