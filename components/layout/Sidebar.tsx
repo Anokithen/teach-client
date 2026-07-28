@@ -1,19 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Logo } from '@/components/layout/Logo';
 import { getNavItems } from '@/components/layout/nav-items';
 import { useAuth } from '@/lib/auth-context';
 
 interface SidebarProps {
   open: boolean;
-  collapsed: boolean;
   onClose: () => void;
 }
 
-export function Sidebar({ open, collapsed, onClose }: SidebarProps) {
+export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { isAdmin } = useAuth();
   const items = getNavItems({ isAdmin });
 
@@ -28,14 +28,17 @@ export function Sidebar({ open, collapsed, onClose }: SidebarProps) {
         />
       )}
       <aside
-          className={`sidebar-kids fixed inset-y-4 left-4 z-50 flex max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] flex-col overflow-y-auto overscroll-contain p-5 transition-all lg:sticky lg:top-4 lg:h-[calc(100vh-2rem)] lg:max-h-none lg:inset-y-auto lg:left-auto lg:w-[276px] lg:shrink-0 lg:translate-x-0 ${collapsed ? 'lg:w-20 lg:px-3' : ''} ${
+          className={`sidebar-kids fixed inset-y-4 left-4 z-50 flex h-[calc(100vh-2rem)] w-[60vw] max-w-[360px] flex-col overflow-y-auto overscroll-contain p-5 transition-transform lg:inset-y-auto lg:left-4 lg:top-4 lg:h-[calc(100vh-2rem)] lg:w-[276px] lg:max-w-none lg:translate-x-0 ${
           open ? 'translate-x-0' : '-translate-x-[calc(100%+1rem)] pointer-events-none lg:pointer-events-auto'
         }`}
       >
-        <div className={`mb-8 shrink-0 px-1 ${collapsed ? 'lg:flex lg:justify-center' : ''}`}>
+        <div className="mb-8 shrink-0 px-1">
           <div className="flex items-center justify-between gap-2">
-            <Logo compact={collapsed} />
+            <Logo />
             <button type="button" onClick={onClose} className="rounded-lg p-2 text-cyan-100 transition-transform hover:bg-white/10 active:scale-90 lg:hidden" aria-label="Close menu">
+              <span aria-hidden="true" className="text-xl leading-none">×</span>
+            </button>
+            <button type="button" onClick={() => router.push('/dashboard')} className="hidden rounded-lg p-2 text-cyan-100 transition-transform hover:bg-white/10 active:scale-90 lg:block" aria-label="Close sidebar and return to dashboard">
               <span aria-hidden="true" className="text-xl leading-none">×</span>
             </button>
           </div>
@@ -48,10 +51,8 @@ export function Sidebar({ open, collapsed, onClose }: SidebarProps) {
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
-                title={collapsed ? item.label : undefined}
-                aria-label={collapsed ? item.label : undefined}
                 aria-current={active ? 'page' : undefined}
-                className={`group relative flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition-all hover:translate-x-0.5 ${collapsed ? 'lg:justify-center lg:px-2' : ''} ${
+                className={`group relative flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition-all hover:translate-x-0.5 ${
                   active
                     ? 'sidebar-nav-active'
                     : 'text-blue-100 hover:bg-white/10'
@@ -63,7 +64,7 @@ export function Sidebar({ open, collapsed, onClose }: SidebarProps) {
             );
           })}
         </nav>
-        <div className={`mt-5 shrink-0 rounded-2xl border border-white/10 bg-white/10 p-3 text-xs text-blue-100 ${collapsed ? 'lg:hidden' : ''}`}>
+        <div className="mt-5 shrink-0 rounded-2xl border border-white/10 bg-white/10 p-3 text-xs text-blue-100">
           <p className="font-bold text-white">Read · Learn · Shine</p>
           <p className="mt-1 leading-5 text-blue-100/80">A little story every day makes a big difference.</p>
         </div>

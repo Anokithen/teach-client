@@ -8,17 +8,14 @@ import { Topbar } from '@/components/layout/Topbar';
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
     <AuthGuard>
       <div className="app-shell flex min-h-screen min-w-0 overflow-x-clip">
-        <Sidebar open={sidebarOpen} collapsed={sidebarCollapsed} onClose={() => setSidebarOpen(false)} />
-        <div className="flex min-w-0 flex-1 flex-col app-content-surface overflow-hidden">
+        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <div className="flex min-w-0 flex-1 flex-col app-content-surface overflow-hidden lg:ml-[308px]">
           <Topbar
             onMenuClick={() => setSidebarOpen(true)}
-            sidebarCollapsed={sidebarCollapsed}
-            onSidebarToggle={() => setSidebarCollapsed((value) => !value)}
           />
           <main className="min-w-0 flex-1 bg-transparent px-3 py-5 sm:px-5 sm:py-6 lg:px-8 lg:py-8">
             <div className="mx-auto max-w-7xl motion-safe:animate-[fade-slide-in_.25s_ease-out]">{children}</div>
