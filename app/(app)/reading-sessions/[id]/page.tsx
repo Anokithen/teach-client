@@ -448,7 +448,6 @@ export default function ReadingSessionPage() {
                   </div>
                   <p className="text-sm text-brand-900">{f.feedback_text}</p>
                   {f.audio_url && (
-                    // eslint-disable-next-line jsx-a11y/media-has-caption
                     <audio controls controlsList="nodownload" src={f.audio_url} className="mt-2 w-full" onContextMenu={(event) => event.preventDefault()} />
                   )}
                 </li>

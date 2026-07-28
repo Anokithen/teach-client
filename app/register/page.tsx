@@ -27,8 +27,8 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
 
-    if (form.password.length < 6) {
-      setError('Password must be at least 6 characters.');
+    if (form.password.length < 8) {
+      setError('Password must be at least 8 characters.');
       return;
     }
 
@@ -65,6 +65,7 @@ export default function RegisterPage() {
               name="name"
               autoComplete="name"
               required
+              maxLength={120}
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
@@ -74,6 +75,7 @@ export default function RegisterPage() {
               name="email"
               autoComplete="email"
               required
+              maxLength={120}
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
@@ -83,7 +85,8 @@ export default function RegisterPage() {
               name="password"
               autoComplete="new-password"
               required
-              minLength={6}
+              minLength={8}
+              maxLength={128}
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
             />

@@ -94,6 +94,7 @@ export function ChildFormModal({ open, onClose, onCreated }: ChildFormModalProps
         <Input
           label="Name"
           required
+          maxLength={120}
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
         />

@@ -139,11 +139,12 @@ export function AccountsTable({
       <Card>
         <h2 className="mb-4 text-sm font-semibold text-brand-900 capitalize">Add a {label}</h2>
         <form onSubmit={submitCreate} className="space-y-4">
-          <Input label="Name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <Input label="Name" required maxLength={120} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <Input
             label="Email"
             type="email"
             required
+            maxLength={120}
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
           />
@@ -151,7 +152,8 @@ export function AccountsTable({
             label="Password"
             type="password"
             required
-            minLength={6}
+            minLength={8}
+            maxLength={128}
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />

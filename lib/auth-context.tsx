@@ -3,7 +3,7 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authApi, accountApi } from '@/lib/endpoints';
-import { setTokens, clearTokens, getAccessToken } from '@/lib/api';
+import { setTokens, clearTokens, getAccessToken, getRefreshToken } from '@/lib/api';
 import { Account, Role } from '@/lib/types';
 
 interface AuthContextValue {
@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
-      await authApi.logout();
+      await authApi.logout(getRefreshToken());
     } catch (err) {
       // ignore — we clear local state regardless
     }

@@ -6,7 +6,8 @@ export const authApi = {
   register: (payload: { name: string; email: string; password: string }) =>
     api.post('/api/auth/register', payload),
   login: (payload: { email: string; password: string }) => api.post('/api/auth/login', payload),
-  logout: () => api.post('/api/auth/logout'),
+  logout: (refreshToken?: string | null) =>
+    api.post('/api/auth/logout', refreshToken ? { refresh_token: refreshToken } : {}),
 };
 
 // ---- AI model discovery ----

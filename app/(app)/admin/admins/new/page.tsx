@@ -47,6 +47,7 @@ export default function NewAdminPage() {
           <Input
             label="Name"
             required
+            maxLength={120}
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
@@ -54,6 +55,7 @@ export default function NewAdminPage() {
             label="Email"
             type="email"
             required
+            maxLength={120}
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
           />
@@ -61,7 +63,8 @@ export default function NewAdminPage() {
             label="Password"
             type="password"
             required
-            minLength={6}
+            minLength={8}
+            maxLength={128}
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />

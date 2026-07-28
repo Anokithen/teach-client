@@ -247,6 +247,7 @@ export default function ChildDetailPage() {
           <form onSubmit={onSave} className="grid gap-4 sm:grid-cols-3">
             <Input
               label="Name"
+              maxLength={120}
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />

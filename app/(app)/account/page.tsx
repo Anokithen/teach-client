@@ -142,6 +142,7 @@ export default function AccountPage() {
           <Input
             label="Name"
             required
+            maxLength={120}
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
@@ -149,13 +150,15 @@ export default function AccountPage() {
             label="Email"
             type="email"
             required
+            maxLength={120}
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
           />
           <Input
             label="New password (leave blank to keep current)"
             type="password"
-            minLength={6}
+            minLength={8}
+            maxLength={128}
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
