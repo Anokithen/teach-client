@@ -67,7 +67,9 @@ export function PwaProvider({ children }: { children: ReactNode }) {
     const onAppInstalled = () => {
       window.localStorage.removeItem(INSTALL_DISMISSED_UNTIL_KEY);
       setInstallPrompt(null);
-      setIsStandalone(true);
+      // Installation completes in the current browser tab. It becomes
+      // standalone only after the user launches the installed app.
+      setIsStandalone(getStandaloneMode());
     };
 
     updateStandaloneMode();

@@ -21,7 +21,12 @@ export const aiApi = {
 // ---- Account ("parent" object holds parent/teacher/admin) ----
 export const accountApi = {
   me: () => api.get('/api/parents/me'),
-  update: (payload: { name?: string; email?: string; password?: string }) =>
+  update: (payload: {
+    name?: string;
+    email?: string;
+    password?: string;
+    current_password?: string;
+  }) =>
     api.patch('/api/parents/me', payload),
   setExitPassword: (payload: {
     current_password: string;
@@ -36,7 +41,10 @@ export const accountApi = {
   uploadProfileImage: (payload: FormData) =>
     api.post('/api/parents/me/profile-image', payload, { headers: { 'Content-Type': 'multipart/form-data' } }),
   removeProfileImage: () => api.delete('/api/parents/me/profile-image'),
-  remove: () => api.delete('/api/parents/me'),
+  remove: (currentPassword: string) =>
+    api.delete('/api/parents/me', {
+      data: { current_password: currentPassword },
+    }),
 };
 
 // ---- Children ----

@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { Badge } from '@/components/ui/Badge';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { Modal } from '@/components/ui/Modal';
 import { ApiErrorShape } from '@/lib/types';
 import { isAllowedUploadFile, uploadFormatError } from '@/lib/file-validation';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -21,6 +21,7 @@ interface AccountForm {
   name: string;
   email: string;
   password: string;
+  currentPassword: string;
 }
 
 interface ExitPasswordForm {
@@ -37,6 +38,7 @@ export default function AccountPage() {
     name: account?.name || '',
     email: account?.email || '',
     password: '',
+    currentPassword: '',
   });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | string[] | null>(null);
@@ -46,6 +48,8 @@ export default function AccountPage() {
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [exitPasswordForm, setExitPasswordForm] =
     useState<ExitPasswordForm>({
       currentPassword: '',
@@ -64,10 +68,25 @@ export default function AccountPage() {
     e.preventDefault();
     setSaveError(null);
     setSaved(false);
+    const sensitiveChange =
+      Boolean(form.password) ||
+      form.email.trim().toLowerCase() !== account?.email.toLowerCase();
+    if (sensitiveChange && !form.currentPassword) {
+      setSaveError(
+        'Enter your current account password to change the email or password.',
+      );
+      return;
+    }
     setSaving(true);
     try {
-      const payload: { name: string; email: string; password?: string } = { name: form.name, email: form.email };
+      const payload: {
+        name: string;
+        email: string;
+        password?: string;
+        current_password?: string;
+      } = { name: form.name, email: form.email };
       if (form.password) payload.password = form.password;
+      if (sensitiveChange) payload.current_password = form.currentPassword;
       await accountApi.update(payload);
       if (profileImageFile) {
         const image = new FormData();
@@ -77,7 +96,7 @@ export default function AccountPage() {
         if (profileImageInput.current) profileImageInput.current.value = '';
       }
       await refreshAccount();
-      setForm((f) => ({ ...f, password: '' }));
+      setForm((f) => ({ ...f, password: '', currentPassword: '' }));
       setSaved(true);
     } catch (err) {
       const apiErr = err as ApiErrorShape;
@@ -116,15 +135,19 @@ export default function AccountPage() {
   }
 
   async function onDelete() {
+    setDeleteError(null);
+    if (!deletePassword) {
+      setDeleteError('Enter your current account password.');
+      return;
+    }
     setDeleting(true);
     try {
-      await accountApi.remove();
+      await accountApi.remove(deletePassword);
       clearTokens();
       router.push('/login');
     } catch (err) {
-      setSaveError((err as ApiErrorShape).message);
+      setDeleteError((err as ApiErrorShape).message);
       setDeleting(false);
-      setConfirmDelete(false);
     }
   }
 
@@ -240,6 +263,17 @@ export default function AccountPage() {
             maxLength={120}
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+          <Input
+            id="account-current-password"
+            label="Current password (required for email or password changes)"
+            type="password"
+            autoComplete="current-password"
+            maxLength={128}
+            value={form.currentPassword}
+            onChange={(e) =>
+              setForm({ ...form, currentPassword: e.target.value })
+            }
           />
           <Input
             label="New password (leave blank to keep current)"
@@ -375,15 +409,57 @@ export default function AccountPage() {
         </Button>
       </Card>
 
-      <ConfirmDialog
+      <Modal
         open={confirmDelete}
-        onClose={() => setConfirmDelete(false)}
-        onConfirm={onDelete}
-        loading={deleting}
+        onClose={() => {
+          if (deleting) return;
+          setConfirmDelete(false);
+          setDeletePassword('');
+          setDeleteError(null);
+        }}
         title="Delete your account?"
-        description="This permanently removes your account, all children profiles, and voice profiles."
-        confirmLabel="Delete account"
-      />
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              disabled={deleting}
+              onClick={() => {
+                setConfirmDelete(false);
+                setDeletePassword('');
+                setDeleteError(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              loading={deleting}
+              onClick={onDelete}
+              disabled={!deletePassword}
+            >
+              Delete account
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-muted">
+            This permanently removes your account, all children profiles, and
+            voice profiles. Confirm with your current account password.
+          </p>
+          <Input
+            id="delete-account-password"
+            label="Current account password"
+            type="password"
+            autoComplete="current-password"
+            required
+            maxLength={128}
+            value={deletePassword}
+            onChange={(event) => setDeletePassword(event.target.value)}
+          />
+          <Alert>{deleteError}</Alert>
+        </div>
+      </Modal>
     </div>
   );
 }

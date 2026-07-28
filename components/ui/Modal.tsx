@@ -3,6 +3,29 @@
 import { ReactNode, useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
 
+let bodyScrollLockCount = 0;
+let bodyOverflowBeforeFirstModal = '';
+const openModalStack: symbol[] = [];
+
+function isTopModal(modalId: symbol) {
+  return openModalStack[openModalStack.length - 1] === modalId;
+}
+
+function lockBodyScroll() {
+  if (bodyScrollLockCount === 0) {
+    bodyOverflowBeforeFirstModal = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+  }
+  bodyScrollLockCount += 1;
+}
+
+function unlockBodyScroll() {
+  bodyScrollLockCount = Math.max(0, bodyScrollLockCount - 1);
+  if (bodyScrollLockCount === 0) {
+    document.body.style.overflow = bodyOverflowBeforeFirstModal;
+  }
+}
+
 interface ModalProps {
   open: boolean;
   onClose: () => void;
@@ -24,14 +47,22 @@ export function Modal({
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  const modalInstanceId = useRef(Symbol('modal')).current;
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
+    openModalStack.push(modalInstanceId);
     previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const focusableSelector = 'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
     const onKey = (e: KeyboardEvent) => {
+      if (!isTopModal(modalInstanceId)) return;
       if (e.key === 'Escape' && dismissible) {
-        onClose?.();
+        onCloseRef.current();
         return;
       }
       if (e.key !== 'Tab') return;
@@ -47,21 +78,24 @@ export function Modal({
         first.focus();
       }
     };
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    lockBodyScroll();
     window.addEventListener('keydown', onKey);
-    requestAnimationFrame(() => {
+    const focusFrame = requestAnimationFrame(() => {
+      if (!isTopModal(modalInstanceId)) return;
       const initialFocus =
         closeButtonRef.current ||
         dialogRef.current?.querySelector<HTMLElement>(focusableSelector);
       initialFocus?.focus();
     });
     return () => {
-      document.body.style.overflow = previousOverflow;
+      cancelAnimationFrame(focusFrame);
+      unlockBodyScroll();
       window.removeEventListener('keydown', onKey);
+      const stackIndex = openModalStack.lastIndexOf(modalInstanceId);
+      if (stackIndex >= 0) openModalStack.splice(stackIndex, 1);
       if (previousFocusRef.current?.isConnected) previousFocusRef.current.focus();
     };
-  }, [dismissible, open, onClose]);
+  }, [dismissible, modalInstanceId, open]);
 
   if (!open) return null;
 
