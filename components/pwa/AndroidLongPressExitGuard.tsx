@@ -5,6 +5,7 @@ import { LogOut } from 'lucide-react';
 import { ExitPasswordDialog } from '@/components/account/ExitPasswordDialog';
 import { useStandaloneMode } from '@/components/pwa/PwaProvider';
 import { useAuth } from '@/lib/auth-context';
+import { accountApi } from '@/lib/endpoints';
 
 const HOLD_DURATION_MS = 2_000;
 const MOVE_TOLERANCE_PX = 18;
@@ -17,9 +18,10 @@ function isAndroidDevice() {
 
 export function AndroidLongPressExitGuard() {
   const isStandalone = useStandaloneMode();
-  const { account, isAuthenticated, isLoading, logout } = useAuth();
+  const { account, isAuthenticated, isLoading } = useAuth();
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
   const [isHolding, setIsHolding] = useState(false);
+  const [gestureUnlocked, setGestureUnlocked] = useState(false);
   const timerRef = useRef<number | null>(null);
   const activePointerIdRef = useRef<number | null>(null);
   const startPointRef = useRef({ x: 0, y: 0 });
@@ -32,7 +34,8 @@ export function AndroidLongPressExitGuard() {
       isAuthenticated &&
       Boolean(account?.has_exit_password) &&
       isStandalone &&
-      isAndroidDevice();
+      isAndroidDevice() &&
+      !gestureUnlocked;
 
     if (!guardEnabled || exitDialogOpen) {
       setIsHolding(false);
@@ -130,7 +133,38 @@ export function AndroidLongPressExitGuard() {
     isAuthenticated,
     isLoading,
     isStandalone,
+    gestureUnlocked,
   ]);
+
+  useEffect(() => {
+    const relockGesture = () => {
+      setGestureUnlocked(false);
+      setExitDialogOpen(false);
+    };
+    const relockWhenHidden = () => {
+      if (document.visibilityState === 'hidden') relockGesture();
+    };
+
+    // Keep the unlock in memory only. Relock whenever the PWA leaves the
+    // foreground, and cover sessions restored from the back-forward cache.
+    document.addEventListener('visibilitychange', relockWhenHidden);
+    window.addEventListener('pagehide', relockGesture);
+    return () => {
+      document.removeEventListener('visibilitychange', relockWhenHidden);
+      window.removeEventListener('pagehide', relockGesture);
+    };
+  }, []);
+
+  useEffect(() => {
+    setGestureUnlocked(false);
+    setExitDialogOpen(false);
+  }, [account?.has_exit_password, account?.id]);
+
+  async function unlockGesture(exitPassword: string) {
+    await accountApi.verifyExitPassword(exitPassword);
+    setExitDialogOpen(false);
+    setGestureUnlocked(true);
+  }
 
   return (
     <>
@@ -152,8 +186,9 @@ export function AndroidLongPressExitGuard() {
       <ExitPasswordDialog
         open={exitDialogOpen}
         onClose={() => setExitDialogOpen(false)}
-        onConfirm={logout}
-        description="A two-second touch and hold requested an exit. Enter the parent exit password to leave the protected session, or stay in TeachAlike."
+        onConfirm={unlockGesture}
+        confirmMode="unlock"
+        description="Enter the parent exit password to disable the two-second hold lock until this PWA session is closed or reloaded."
       />
     </>
   );

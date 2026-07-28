@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { LogOut } from 'lucide-react';
+import { LogOut, UnlockKeyhole } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -13,6 +13,7 @@ interface ExitPasswordDialogProps {
   onClose: () => void;
   onConfirm: (exitPassword: string) => Promise<void>;
   description?: string;
+  confirmMode?: 'exit' | 'unlock';
 }
 
 export function ExitPasswordDialog({
@@ -20,6 +21,7 @@ export function ExitPasswordDialog({
   onClose,
   onConfirm,
   description = 'Ask a parent or account owner to enter the exit password.',
+  confirmMode = 'exit',
 }: ExitPasswordDialogProps) {
   const [exitPassword, setExitPassword] = useState('');
   const [error, setError] = useState<string | string[] | null>(null);
@@ -67,8 +69,12 @@ export function ExitPasswordDialog({
             loading={loading}
             disabled={!exitPassword}
           >
-            <LogOut className="h-4 w-4" aria-hidden="true" />
-            Exit app
+            {confirmMode === 'unlock' ? (
+              <UnlockKeyhole className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+            )}
+            {confirmMode === 'unlock' ? 'Temporarily unlock' : 'Exit app'}
           </Button>
         </>
       }
