@@ -12,12 +12,14 @@ interface ExitPasswordDialogProps {
   open: boolean;
   onClose: () => void;
   onConfirm: (exitPassword: string) => Promise<void>;
+  description?: string;
 }
 
 export function ExitPasswordDialog({
   open,
   onClose,
   onConfirm,
+  description = 'Ask a parent or account owner to enter the exit password.',
 }: ExitPasswordDialogProps) {
   const [exitPassword, setExitPassword] = useState('');
   const [error, setError] = useState<string | string[] | null>(null);
@@ -72,9 +74,7 @@ export function ExitPasswordDialog({
       }
     >
       <form id="exit-password-form" onSubmit={submit} className="space-y-4">
-        <p className="text-muted">
-          Ask a parent or account owner to enter the exit password.
-        </p>
+        <p className="text-muted">{description}</p>
         <Input
           id="exit-password"
           label="Exit password"

@@ -4,6 +4,7 @@ import Script from 'next/script';
 import './globals.css';
 import { PwaProvider } from '@/components/pwa/PwaProvider';
 import { FullscreenExitGuard } from '@/components/pwa/FullscreenExitGuard';
+import { AndroidBackExitGuard } from '@/components/pwa/AndroidBackExitGuard';
 import { AuthProvider } from '@/lib/auth-context';
 
 export const metadata: Metadata = {
@@ -75,6 +76,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <AuthProvider>
             {children}
             <FullscreenExitGuard />
+            <AndroidBackExitGuard />
           </AuthProvider>
         </PwaProvider>
       </body>
