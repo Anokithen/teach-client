@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Baby } from 'lucide-react';
 import { childrenApi } from '@/lib/endpoints';
 import { useAuth } from '@/lib/auth-context';
 import { Spinner } from '@/components/ui/Spinner';
@@ -34,7 +35,7 @@ export default function ChildrenPage() {
 
   return (
     <div>
-      <PageHeader eyebrow="Growing readers" title="Children" icon="🧒" description={isAdmin ? 'Every child profile on the platform.' : 'Manage the children you read with.'} action={!isAdmin ? <Button onClick={() => setModalOpen(true)}>Add child</Button> : undefined} />
+      <PageHeader eyebrow="Growing readers" title="Children" icon={Baby} description={isAdmin ? 'Every child profile on the platform.' : 'Manage the children you read with.'} action={!isAdmin ? <Button onClick={() => setModalOpen(true)}>Add child</Button> : undefined} />
 
       <div className="mt-6">
         {!children && !error && (

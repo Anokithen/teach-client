@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { BookOpen } from 'lucide-react';
 import { booksApi } from '@/lib/endpoints';
 import { Spinner } from '@/components/ui/Spinner';
 import { Badge } from '@/components/ui/Badge';
@@ -47,7 +48,7 @@ export default function BooksPage() {
 
   return (
     <div>
-      <PageHeader eyebrow="Digital bookshelf" title="Books" icon="📚" description="Browse the library and assign a title to a reading session." />
+      <PageHeader eyebrow="Digital bookshelf" title="Books" icon={BookOpen} description="Browse the library and assign a title to a reading session." />
 
       <div className="mt-6 flex flex-wrap gap-3">
         <Select

@@ -1,6 +1,7 @@
 'use client';
 
 import { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes, useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -36,19 +37,11 @@ export function Input({ label, error, id, type = 'text', className = '', ...prop
             aria-pressed={showPassword}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-              {showPassword ? (
-                <>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
-                  <circle cx="12" cy="12" r="2.5" />
-                </>
-              ) : (
-                <>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m3 3 18 18M10.6 6.2A9.7 9.7 0 0 1 12 6c6 0 9.5 6 9.5 6a17.7 17.7 0 0 1-3.1 3.8M6.2 6.7C3.8 8.2 2.5 12 2.5 12s3.5 6 9.5 6c1 0 1.9-.2 2.7-.5" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
-                </>
-              )}
-            </svg>
+            {showPassword ? (
+              <Eye className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <EyeOff className="h-4 w-4" aria-hidden="true" />
+            )}
             <span>{showPassword ? 'Hide' : 'Show'}</span>
           </button>
         )}

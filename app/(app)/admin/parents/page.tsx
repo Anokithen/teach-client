@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { UsersRound } from 'lucide-react';
 import { adminApi } from '@/lib/endpoints';
 import { AccountCreateForm, AccountsTable } from '@/components/admin/AccountsTable';
 import { Account, ApiErrorShape } from '@/lib/types';
@@ -58,7 +59,7 @@ export default function AdminParentsPage() {
 
   return (
     <div>
-      <PageHeader eyebrow="Admin workspace" title="Parents" icon="👨‍👩‍👧" description="Manage parent accounts across the platform." />
+      <PageHeader eyebrow="Admin workspace" title="Parents" icon={UsersRound} description="Manage parent accounts across the platform." />
       <div className="mt-6">
         <AccountsTable
           label="parent"

@@ -1,6 +1,17 @@
 'use client';
 
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
+import {
+  Circle,
+  Mic2,
+  Music2,
+  Pencil,
+  Play,
+  Sparkles,
+  Square,
+  Trash2,
+  Upload,
+} from 'lucide-react';
 import { voiceProfilesApi } from '@/lib/endpoints';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
@@ -278,7 +289,7 @@ export default function VoiceProfilesPage() {
   }
 
   return <div>
-    <PageHeader eyebrow="Familiar voices" title="Voice profiles" icon="🎙️" description="Create a warm, familiar audio experience for every reading adventure." />
+    <PageHeader eyebrow="Familiar voices" title="Voice profiles" icon={Mic2} description="Create a warm, familiar audio experience for every reading adventure." />
     <p className="mt-1 text-sm text-muted">Create a private ElevenLabs voice clone for book reading. Recordings are available only to their owner and administrators.</p>
     <div className="mt-6 grid gap-6 lg:grid-cols-3">
       <Card className="lg:col-span-2">
@@ -292,15 +303,15 @@ export default function VoiceProfilesPage() {
               <div><p className="text-sm font-medium text-brand-900">{profile.label || `Voice profile #${profile.id}`}</p>
                 <p className="text-xs text-muted">{profile.owner_name && `${profile.owner_name} · `}Created {new Date(profile.created_at).toLocaleDateString()} {profile.has_cloned_voice && '· ElevenLabs clone ready'}</p></div>
               <div className="flex items-center gap-2"><Badge tone={STATUS_TONE[profile.status] || 'warning'}>{profile.status}</Badge>
-                <Button variant="ghost" loading={previewingId === profile.id} onClick={() => onPreview(profile)}>Play</Button>
-                <Button variant="ghost" onClick={() => { setEditing(profile); setEditLabel(profile.label || ''); }}>Edit</Button>
-                <Button variant="ghost" onClick={() => setPendingDelete(profile)}>Delete</Button></div>
+                <Button variant="ghost" loading={previewingId === profile.id} onClick={() => onPreview(profile)}><Play className="h-4 w-4" aria-hidden="true" />Play</Button>
+                <Button variant="ghost" onClick={() => { setEditing(profile); setEditLabel(profile.label || ''); }}><Pencil className="h-4 w-4" aria-hidden="true" />Edit</Button>
+                <Button variant="ghost" onClick={() => setPendingDelete(profile)}><Trash2 className="h-4 w-4" aria-hidden="true" />Delete</Button></div>
             </div>
           </li>)}
         </ul>}
         {previewError && <Alert>{previewError}</Alert>}
         {previewUrl && <div className="voice-playback-card mt-4 overflow-hidden rounded-2xl border border-brand-400/30 bg-gradient-to-r from-cyan-50 via-violet-50 to-amber-50 p-4 shadow-sm">
-          <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-brand-600 to-violet-500 text-lg text-white shadow-md">♫</span><div><p className="text-sm font-semibold text-brand-900">Your voice is ready to play</p><p className="text-xs text-muted">Use the controls below to pause, replay, or seek.</p></div></div>
+          <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-brand-600 to-violet-500 text-white shadow-md"><Music2 className="h-5 w-5" aria-hidden="true" /></span><div><p className="text-sm font-semibold text-brand-900">Your voice is ready to play</p><p className="text-xs text-muted">Use the controls below to pause, replay, or seek.</p></div></div>
           <PlaybackWave />
           <audio ref={previewAudio} key={previewUrl} className="vibrant-audio-player w-full" controls controlsList="nodownload" autoPlay preload="metadata" src={previewUrl} onContextMenu={(event) => event.preventDefault()} onEnded={() => setPreviewUrl(null)} onError={() => setPreviewError('This recording could not be played. Please try again.')}>Your browser cannot play this recording.</audio>
         </div>}
@@ -314,24 +325,24 @@ export default function VoiceProfilesPage() {
                 <p className="text-sm font-semibold text-brand-900">Record with your microphone</p>
               <p className="mt-1 text-xs text-muted">When you stop, the recording is converted to WAV and held here for review. It uploads only after you confirm.</p>
               </div>
-              <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-lg shadow-sm ${isRecording ? 'animate-pulse bg-danger text-white' : 'bg-gradient-to-br from-brand-600 to-violet-500 text-white'}`}>🎙️</span>
+              <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full shadow-sm ${isRecording ? 'animate-pulse bg-danger text-white' : 'bg-gradient-to-br from-brand-600 to-violet-500 text-white'}`}><Mic2 className="h-5 w-5" aria-hidden="true" /></span>
             </div>
             <div className="voice-recorder-status mt-4 flex min-h-12 items-center justify-center rounded-xl bg-white/70 px-3">
               {isRecording ? <RecordingWave /> : <p className="text-xs font-medium text-brand-600">Ready to capture a story</p>}
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              {!isRecording ? <button type="button" onClick={startRecording} disabled={creating} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 via-cyan-500 to-violet-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"><span>●</span> Start recording</button> :
-                <Button type="button" variant="danger" onClick={stopRecording}>■ Stop &amp; review</Button>}
+              {!isRecording ? <button type="button" onClick={startRecording} disabled={creating} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 via-cyan-500 to-violet-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"><Circle className="h-4 w-4 fill-current" aria-hidden="true" />Start recording</button> :
+                <Button type="button" variant="danger" onClick={stopRecording}><Square className="h-4 w-4 fill-current" aria-hidden="true" />Stop &amp; review</Button>}
               {isRecording && <span className="text-sm font-semibold text-danger" aria-live="polite">Recording now…</span>}
               {creating && <span className="text-sm text-muted" aria-live="polite">Uploading and cloning your voice…</span>}
             </div>
-            {recordingUrl && <div className="voice-recording-preview mt-3 rounded-xl bg-white/70 p-3"><div className="mb-2 flex items-center gap-2 text-xs font-semibold text-violet-700"><span>✨</span> Review before uploading</div><PlaybackWave /><audio key={recordingUrl} className="vibrant-audio-player w-full" controls controlsList="nodownload" preload="metadata" src={recordingUrl} onContextMenu={(event) => event.preventDefault()} onEnded={() => setRecordingUrl(null)} onError={() => setCreateError('This recording could not be played. Please record it again.')}>Your browser cannot play this recording.</audio><Button type="button" variant="ghost" onClick={discardPendingRecording} className="mt-2 min-h-0 px-0 py-1 text-xs text-danger">Delete this recording</Button></div>}
+            {recordingUrl && <div className="voice-recording-preview mt-3 rounded-xl bg-white/70 p-3"><div className="mb-2 flex items-center gap-2 text-xs font-semibold text-violet-700"><Sparkles className="h-4 w-4" aria-hidden="true" />Review before uploading</div><PlaybackWave /><audio key={recordingUrl} className="vibrant-audio-player w-full" controls controlsList="nodownload" preload="metadata" src={recordingUrl} onContextMenu={(event) => event.preventDefault()} onEnded={() => setRecordingUrl(null)} onError={() => setCreateError('This recording could not be played. Please record it again.')}>Your browser cannot play this recording.</audio><Button type="button" variant="ghost" onClick={discardPendingRecording} className="mt-2 min-h-0 px-0 py-1 text-xs text-danger"><Trash2 className="h-4 w-4" aria-hidden="true" />Delete this recording</Button></div>}
           </div>
           <label className="block">
             <span className="text-sm font-semibold text-brand-900">Or upload an existing recording</span>
             <input ref={fileInput} type="file" accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/wave,audio/vnd.wave,audio/webm,audio/ogg,audio/mp4,audio/x-m4a,video/mp4,.mp3,.wav,.webm,.ogg,.m4a,.mp4" onChange={onFileChange} className="sr-only" />
             <span className="voice-file-picker mt-2 flex cursor-pointer items-center justify-between gap-3 rounded-xl border-2 border-dashed border-violet-300 bg-gradient-to-r from-violet-50 via-fuchsia-50 to-amber-50 px-4 py-3 transition hover:border-brand-400 hover:shadow-sm">
-              <span className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-lg text-white">↑</span><span><span className="block text-sm font-semibold text-violet-700">Choose audio file</span><span className="block text-xs text-muted">Tap to browse your device</span></span></span>
+              <span className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white"><Upload className="h-5 w-5" aria-hidden="true" /></span><span><span className="block text-sm font-semibold text-violet-700">Choose audio file</span><span className="block text-xs text-muted">Tap to browse your device</span></span></span>
               <span className="max-w-28 truncate text-xs font-medium text-brand-600">{file?.name || 'No file chosen'}</span>
             </span>
           </label>

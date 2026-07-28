@@ -1,6 +1,7 @@
 'use client';
 
 import { ChangeEvent, FormEvent, useRef, useState } from 'react';
+import { UserCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { accountApi } from '@/lib/endpoints';
 import { clearTokens } from '@/lib/api';
@@ -111,7 +112,7 @@ export default function AccountPage() {
 
   return (
     <div className="max-w-xl">
-      <PageHeader eyebrow="Your TeachAlike space" title="My account" icon="🌟" description="Keep your profile and account details up to date." />
+      <PageHeader eyebrow="Your TeachAlike space" title="My account" icon={UserCircle} description="Keep your profile and account details up to date." />
       <div className="mt-2 flex items-center gap-2">
         <Badge tone="brand" className="capitalize">
           {account.role}

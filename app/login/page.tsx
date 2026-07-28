@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Sparkles } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { Logo } from '@/components/layout/Logo';
 import { Input } from '@/components/ui/Input';
@@ -44,7 +45,7 @@ export default function LoginPage() {
           <Logo />
         </div>
         <div className="neumorphic-card relative overflow-hidden p-6 sm:p-8">
-          <span className="pointer-events-none absolute right-5 top-4 text-xl text-gold/70" aria-hidden="true">✦</span>
+          <Sparkles className="pointer-events-none absolute right-5 top-4 h-5 w-5 text-gold/70" aria-hidden="true" />
           <h1 className="mb-1 text-xl font-semibold text-brand-900">Log in</h1>
           <p className="mb-6 text-sm text-muted">Welcome back — pick up where you left off.</p>
 

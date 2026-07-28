@@ -1,29 +1,44 @@
+import {
+  Baby,
+  BookOpen,
+  GraduationCap,
+  LayoutDashboard,
+  LibraryBig,
+  Mic2,
+  ShieldPlus,
+  Trophy,
+  UserCircle,
+  UsersRound,
+  type LucideIcon,
+} from 'lucide-react';
+
 export interface NavItem {
   href: string;
   label: string;
+  icon: LucideIcon;
 }
 
 export function getNavItems({ isAdmin }: { isAdmin: boolean }): NavItem[] {
   if (isAdmin) {
     return [
-      { href: '/dashboard', label: 'Dashboard' },
-      { href: '/admin/parents', label: 'Parents' },
-      { href: '/admin/teachers', label: 'Teachers' },
-      { href: '/admin/admins/new', label: 'Add admin' },
-      { href: '/admin/books/new', label: 'Add book' },
-      { href: '/voice-profiles', label: 'Voice recordings' },
-      { href: '/children', label: 'Children' },
-      { href: '/books', label: 'Books' },
-      { href: '/leaderboard', label: 'Leaderboard' },
-      { href: '/account', label: 'My account' },
+      { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/admin/parents', label: 'Parents', icon: UsersRound },
+      { href: '/admin/teachers', label: 'Teachers', icon: GraduationCap },
+      { href: '/admin/admins/new', label: 'Add admin', icon: ShieldPlus },
+      { href: '/admin/books/new', label: 'Add book', icon: LibraryBig },
+      { href: '/voice-profiles', label: 'Voice recordings', icon: Mic2 },
+      { href: '/children', label: 'Children', icon: Baby },
+      { href: '/books', label: 'Books', icon: BookOpen },
+      { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
+      { href: '/account', label: 'My account', icon: UserCircle },
     ];
   }
   return [
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/children', label: 'Children' },
-    { href: '/books', label: 'Books' },
-    { href: '/voice-profiles', label: 'Voice profiles' },
-    { href: '/leaderboard', label: 'Leaderboard' },
-    { href: '/account', label: 'My account' },
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/children', label: 'Children', icon: Baby },
+    { href: '/books', label: 'Books', icon: BookOpen },
+    { href: '/voice-profiles', label: 'Voice profiles', icon: Mic2 },
+    { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
+    { href: '/account', label: 'My account', icon: UserCircle },
   ];
 }

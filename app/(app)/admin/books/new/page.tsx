@@ -2,6 +2,7 @@
 
 import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { LibraryBig, Sparkles } from 'lucide-react';
 import { adminApi, aiApi } from '@/lib/endpoints';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
@@ -157,11 +158,14 @@ export default function NewBookPage() {
 
   return (
     <div className="max-w-2xl">
-      <PageHeader eyebrow="Library studio" title="Add a book" icon="📖" description="Each new book automatically receives word puzzle, spelling, and an AI-generated story word quiz based on its content." />
+      <PageHeader eyebrow="Library studio" title="Add a book" icon={LibraryBig} description="Each new book automatically receives word puzzle, spelling, and an AI-generated story word quiz based on its content." />
       <Card className="sparkle-book-card mt-6 overflow-hidden">
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="rounded-2xl bg-brand-400/10 p-4">
-            <p className="text-sm font-semibold text-brand-900">✨ Story starter</p>
+            <p className="flex items-center gap-2 text-sm font-semibold text-brand-900">
+              <Sparkles className="h-4 w-4 text-brand-600" aria-hidden="true" />
+              Story starter
+            </p>
             <p className="mt-1 text-xs text-muted">Describe the characters, setting, lesson, and adventure you want. Groq fills the title and story text for you.</p>
             <div className="mt-3 space-y-2">
               <Textarea label="AI story prompt" value={storyIdea} onChange={(e) => setStoryIdea(e.target.value)} placeholder="Example: A brave fox helps a lost bird find its family in a glowing forest." />
@@ -172,7 +176,10 @@ export default function NewBookPage() {
               <p className="text-xs text-muted">
                 {aiModelsError || (aiModelsLoading ? 'Loading the current model list from Groq…' : 'This list comes from Groq’s active models.')}
               </p>
-              <Button type="button" variant="secondary" loading={generating} onClick={generateStory}>✨ Generate book with Groq</Button>
+              <Button type="button" variant="secondary" loading={generating} onClick={generateStory}>
+                <Sparkles className="h-4 w-4" aria-hidden="true" />
+                Generate book with Groq
+              </Button>
             </div>
           </div>
           <Input label="Book title" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />

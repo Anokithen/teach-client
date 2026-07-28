@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { ChevronDown, LogOut, Menu, Moon, Sun, UserRound } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { Logo } from '@/components/layout/Logo';
 
@@ -40,9 +41,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
           className="soft-inset shrink-0 rounded-xl p-2 text-brand-900 transition-transform hover:bg-white active:scale-90"
           aria-label="Open menu"
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M3 6h18M3 12h18M3 18h18" strokeLinecap="round" />
-          </svg>
+          <Menu className="h-[22px] w-[22px]" aria-hidden="true" />
         </button>
         <Logo compact />
       </div>
@@ -57,7 +56,11 @@ export function Topbar({ onMenuClick }: TopbarProps) {
           aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
           title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
         >
-          <span aria-hidden="true">{darkMode ? '☀️' : '🌙'}</span>
+          {darkMode ? (
+            <Sun className="h-5 w-5" aria-hidden="true" />
+          ) : (
+            <Moon className="h-5 w-5" aria-hidden="true" />
+          )}
         </button>
         <div className="relative min-w-0">
         <button
@@ -79,9 +82,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
             <span className="max-w-[145px] truncate font-semibold leading-tight">{account?.name || 'My profile'}</span>
             <span className="mt-0.5 text-xs capitalize text-cyan-100">{account?.role || 'Account'}</span>
           </span>
-          <svg className={`h-4 w-4 shrink-0 text-muted transition-transform ${menuOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <ChevronDown className={`h-4 w-4 shrink-0 text-muted transition-transform ${menuOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
         </button>
         {menuOpen && (
           <>
@@ -94,8 +95,9 @@ export function Topbar({ onMenuClick }: TopbarProps) {
               <Link
                 href="/account"
                 onClick={() => setMenuOpen(false)}
-                className="block rounded-lg px-3 py-2 text-sm text-brand-900 transition-colors hover:bg-bg"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-brand-900 transition-colors hover:bg-bg"
               >
+                <UserRound className="h-4 w-4" aria-hidden="true" />
                 My account
               </Link>
               <button
@@ -104,8 +106,9 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                   setMenuOpen(false);
                   logout();
                 }}
-                className="block w-full rounded-lg px-3 py-2 text-left text-sm text-danger transition-colors hover:bg-danger/5"
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-danger transition-colors hover:bg-danger/5"
               >
+                <LogOut className="h-4 w-4" aria-hidden="true" />
                 Log out
               </button>
             </div>

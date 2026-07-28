@@ -284,8 +284,8 @@
   .loading-logo-wrap { z-index: 1; display: grid; place-items: center; width: 136px; height: 136px; border-radius: 999px; background: rgba(255,255,255,.96); box-shadow: 0 0 0 12px rgba(84,172,191,.18), 0 22px 50px rgba(0,0,0,.28); animation: logo-bob 2s ease-in-out infinite; }
   .loading-logo { border-radius: 1.3rem; }
   .rainbow-spinner { width: 168px; height: 168px; margin-top: -152px; border: 5px solid transparent; border-top-color: #8EE5F3; border-right-color: #E0A438; border-bottom-color: #8B5CF6; border-radius: 999px; animation: spinner-orbit 1.2s linear infinite; }
-  .loading-stars span { position: fixed; color: #8EE5F3; font-size: 1.6rem; animation: twinkle 2.2s ease-in-out infinite; }
-  .loading-stars span:nth-child(1) { transform: translate(-150px, -110px); } .loading-stars span:nth-child(2) { transform: translate(140px, -100px); color: #E0A438; } .loading-stars span:nth-child(3) { transform: translate(-175px, 110px); color: #A78BFA; } .loading-stars span:nth-child(4) { transform: translate(155px, 125px); color: #F9B4A9; }
+  .loading-stars > * { position: fixed; width: 1.6rem; height: 1.6rem; color: #8EE5F3; animation: twinkle 2.2s ease-in-out infinite; }
+  .loading-stars > *:nth-child(1) { transform: translate(-150px, -110px); } .loading-stars > *:nth-child(2) { transform: translate(140px, -100px); color: #E0A438; } .loading-stars > *:nth-child(3) { transform: translate(-175px, 110px); color: #A78BFA; } .loading-stars > *:nth-child(4) { transform: translate(155px, 125px); color: #F9B4A9; }
 
   .mic-orb {
     position: relative;

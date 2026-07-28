@@ -3,6 +3,22 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  Gamepad2,
+  Pencil,
+  Play,
+  Puzzle,
+  RotateCcw,
+  Sparkles,
+  Trash2,
+  Volume2,
+  type LucideIcon,
+} from 'lucide-react';
 import { adminApi, bookNarrationsApi, booksApi, childrenApi, voiceProfilesApi, sessionsApi } from '@/lib/endpoints';
 import { useAuth } from '@/lib/auth-context';
 import { Card } from '@/components/ui/Card';
@@ -17,10 +33,10 @@ import { BookEditModal } from '@/components/books/BookEditModal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ApiErrorShape, Book, BookNarration, Child, MiniGame, VoiceProfile } from '@/lib/types';
 
-const GAME_DETAILS: Record<string, { icon: string; goal: string; description: string }> = {
-  word_puzzle: { icon: '🧩', goal: 'Word builder', description: 'Put mixed-up letters in the right order to build book words.' },
-  spelling: { icon: '✏️', goal: 'Spelling practice', description: 'Type important words from the story carefully and correctly.' },
-  quiz: { icon: '🌟', goal: 'Story word quiz', description: 'Choose words you remember from the book to check your understanding.' },
+const GAME_DETAILS: Record<string, { icon: LucideIcon; goal: string; description: string }> = {
+  word_puzzle: { icon: Puzzle, goal: 'Word builder', description: 'Put mixed-up letters in the right order to build book words.' },
+  spelling: { icon: Pencil, goal: 'Spelling practice', description: 'Type important words from the story carefully and correctly.' },
+  quiz: { icon: Sparkles, goal: 'Story word quiz', description: 'Choose words you remember from the book to check your understanding.' },
 };
 
 export default function BookDetailPage() {
@@ -198,8 +214,9 @@ export default function BookDetailPage() {
 
   return (
     <div>
-      <Link href="/books" className="text-sm font-medium text-brand-600 hover:underline">
-        &larr; All books
+      <Link href="/books" className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:underline">
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+        All books
       </Link>
 
       <div className="mt-4 flex flex-wrap items-start justify-between gap-6">
@@ -212,9 +229,11 @@ export default function BookDetailPage() {
           {isAdmin && (
             <div className="mt-4 flex flex-wrap gap-2">
               <Button type="button" variant="secondary" onClick={() => setEditOpen(true)}>
+                <Pencil className="h-4 w-4" aria-hidden="true" />
                 Edit book
               </Button>
               <Button type="button" variant="danger" onClick={() => setDeleteOpen(true)}>
+                <Trash2 className="h-4 w-4" aria-hidden="true" />
                 Delete book
               </Button>
             </div>
@@ -226,10 +245,10 @@ export default function BookDetailPage() {
               {/* External admin-provided image URLs cannot be allowlisted at build time for next/image. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img key={storyImages[imageIndex]} src={storyImages[imageIndex]} alt={`Illustration ${imageIndex + 1} for ${book.title}`} className="story-gallery-image h-48 w-full rounded-2xl object-cover sm:h-56" />
-              <span className="reading-sparkle absolute right-4 top-3 text-2xl" aria-hidden="true">✨</span>
+              <Sparkles className="reading-sparkle absolute right-4 top-3 h-6 w-6 text-amber-300" aria-hidden="true" />
               {storyImages.length > 1 && <>
-                <button type="button" aria-label="Previous book image" onClick={() => setImageIndex((index) => (index - 1 + storyImages.length) % storyImages.length)} className="absolute left-4 top-1/2 rounded-full bg-white/90 px-3 py-2 text-brand-900 shadow transition hover:scale-110">‹</button>
-                <button type="button" aria-label="Next book image" onClick={() => setImageIndex((index) => (index + 1) % storyImages.length)} className="absolute right-4 top-1/2 rounded-full bg-white/90 px-3 py-2 text-brand-900 shadow transition hover:scale-110">›</button>
+                <button type="button" aria-label="Previous book image" onClick={() => setImageIndex((index) => (index - 1 + storyImages.length) % storyImages.length)} className="absolute left-4 top-1/2 rounded-full bg-white/90 p-2 text-brand-900 shadow transition hover:scale-110"><ChevronLeft className="h-5 w-5" aria-hidden="true" /></button>
+                <button type="button" aria-label="Next book image" onClick={() => setImageIndex((index) => (index + 1) % storyImages.length)} className="absolute right-4 top-1/2 rounded-full bg-white/90 p-2 text-brand-900 shadow transition hover:scale-110"><ChevronRight className="h-5 w-5" aria-hidden="true" /></button>
               </>}
             </div>
             {storyImages.length > 1 && <div className="mt-2 flex justify-center gap-1.5" aria-label="Book image selector">{storyImages.map((image, index) => <button type="button" key={image} aria-label={`Show image ${index + 1}`} onClick={() => setImageIndex(index)} className={`h-2 rounded-full transition-all ${index === imageIndex ? 'w-6 bg-brand-600' : 'w-2 bg-brand-400/40'}`} />)}</div>}
@@ -267,10 +286,10 @@ export default function BookDetailPage() {
                   <option value="">Choose a familiar voice</option>
                   {voiceProfiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.label || `Voice profile #${profile.id}`}</option>)}
                 </Select>
-                {!selectedNarration && <Button type="button" onClick={createNarration} loading={creatingNarration} disabled={!narrationVoiceId}>Generate and listen</Button>}
+                {!selectedNarration && <Button type="button" onClick={createNarration} loading={creatingNarration} disabled={!narrationVoiceId}><Volume2 className="h-4 w-4" aria-hidden="true" />Generate and listen</Button>}
                 {selectedNarration?.status === 'processing' && <div className="flex items-center gap-2 text-sm text-brand-700"><Spinner size={16} /> Generating narration… This can take a few minutes.</div>}
-                {selectedNarration?.status === 'failed' && <div className="space-y-2"><Alert>{selectedNarration.error_message || 'Narration generation failed.'}</Alert><Button type="button" onClick={createNarration} loading={creatingNarration}>Retry narration</Button></div>}
-                {selectedNarration?.status === 'ready' && <div className="space-y-3"><Button type="button" variant="ghost" onClick={loadNarrationAudio}>Listen to saved narration</Button>{narrationAudioUrl && <audio ref={narrationAudio} key={narrationAudioUrl} className="w-full" controls controlsList="nodownload" autoPlay preload="metadata" src={narrationAudioUrl} onContextMenu={(event) => event.preventDefault()}>Your browser cannot play this narration.</audio>}</div>}
+                {selectedNarration?.status === 'failed' && <div className="space-y-2"><Alert>{selectedNarration.error_message || 'Narration generation failed.'}</Alert><Button type="button" onClick={createNarration} loading={creatingNarration}><RotateCcw className="h-4 w-4" aria-hidden="true" />Retry narration</Button></div>}
+                {selectedNarration?.status === 'ready' && <div className="space-y-3"><Button type="button" variant="ghost" onClick={loadNarrationAudio}><Play className="h-4 w-4" aria-hidden="true" />Listen to saved narration</Button>{narrationAudioUrl && <audio ref={narrationAudio} key={narrationAudioUrl} className="w-full" controls controlsList="nodownload" autoPlay preload="metadata" src={narrationAudioUrl} onContextMenu={(event) => event.preventDefault()}>Your browser cannot play this narration.</audio>}</div>}
               </div>
             )}
             {narrationError && <div className="mt-3"><Alert>{narrationError}</Alert></div>}
@@ -310,6 +329,7 @@ export default function BookDetailPage() {
             )}
             <Alert>{startError}</Alert>
             <Button type="submit" loading={starting} className="w-full">
+              <BookOpen className="h-4 w-4" aria-hidden="true" />
               Start reading session
             </Button>
           </form>
@@ -323,18 +343,21 @@ export default function BookDetailPage() {
         )}
         {miniGames && miniGames.length > 0 && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {miniGames.map((g) => (
-              <Link
-                key={g.id}
-                href={`/mini-games/${g.id}`}
-                className="sparkle-book-card card block p-5 transition-all hover:-translate-y-1 hover:shadow-md"
-              >
-                <span className="mb-3 block text-2xl" aria-hidden="true">{GAME_DETAILS[g.game_type]?.icon || '🎮'}</span>
-                <h3 className="text-base font-semibold text-brand-900">{GAME_DETAILS[g.game_type]?.goal || g.game_type?.replace(/_/g, ' ')}</h3>
-                <p className="mt-1 min-h-10 text-sm text-muted">{GAME_DETAILS[g.game_type]?.description || 'Complete the activity to practise this book.'}</p>
-                <div className="mt-3 flex items-center justify-between"><Badge tone="neutral" className="capitalize">{g.difficulty}</Badge><span className="text-xs font-semibold text-brand-600">Play →</span></div>
-              </Link>
-            ))}
+            {miniGames.map((g) => {
+              const GameIcon = GAME_DETAILS[g.game_type]?.icon || Gamepad2;
+              return (
+                <Link
+                  key={g.id}
+                  href={`/mini-games/${g.id}`}
+                  className="sparkle-book-card card block p-5 transition-all hover:-translate-y-1 hover:shadow-md"
+                >
+                  <GameIcon className="mb-3 h-6 w-6 text-brand-600" aria-hidden="true" />
+                  <h3 className="text-base font-semibold text-brand-900">{GAME_DETAILS[g.game_type]?.goal || g.game_type?.replace(/_/g, ' ')}</h3>
+                  <p className="mt-1 min-h-10 text-sm text-muted">{GAME_DETAILS[g.game_type]?.description || 'Complete the activity to practise this book.'}</p>
+                  <div className="mt-3 flex items-center justify-between"><Badge tone="neutral" className="capitalize">{g.difficulty}</Badge><span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600">Play <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></span></div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

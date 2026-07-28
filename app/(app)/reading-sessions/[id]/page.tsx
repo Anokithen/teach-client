@@ -2,6 +2,15 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
+import {
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Mic2,
+  Sparkles,
+  Square,
+  Volume2,
+} from 'lucide-react';
 import { bookNarrationsApi, booksApi, sessionsApi, voiceProfilesApi } from '@/lib/endpoints';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
@@ -253,6 +262,7 @@ export default function ReadingSessionPage() {
           </Badge>
           {!session.is_complete && (
             <Button variant="secondary" onClick={() => setConfirmComplete(true)}>
+              <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
               Mark complete
             </Button>
           )}
@@ -270,10 +280,10 @@ export default function ReadingSessionPage() {
               {/* External admin-provided image URLs cannot be allowlisted at build time for next/image. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img key={storyImages[imageIndex]} src={storyImages[imageIndex]} alt={`Story illustration ${imageIndex + 1}`} className="story-gallery-image h-56 w-full rounded-2xl object-cover sm:h-72" />
-              <span className="reading-sparkle absolute left-5 top-4 text-2xl" aria-hidden="true">🌟</span>
+              <Sparkles className="reading-sparkle absolute left-5 top-4 h-6 w-6 text-amber-400" aria-hidden="true" />
               {storyImages.length > 1 && <>
-                <button type="button" aria-label="Previous story picture" onClick={() => setImageIndex((index) => (index - 1 + storyImages.length) % storyImages.length)} className="absolute left-5 top-1/2 rounded-full bg-white/90 px-3 py-2 text-brand-900 shadow transition hover:scale-110">‹</button>
-                <button type="button" aria-label="Next story picture" onClick={() => setImageIndex((index) => (index + 1) % storyImages.length)} className="absolute right-5 top-1/2 rounded-full bg-white/90 px-3 py-2 text-brand-900 shadow transition hover:scale-110">›</button>
+                <button type="button" aria-label="Previous story picture" onClick={() => setImageIndex((index) => (index - 1 + storyImages.length) % storyImages.length)} className="absolute left-5 top-1/2 rounded-full bg-white/90 p-2 text-brand-900 shadow transition hover:scale-110"><ChevronLeft className="h-5 w-5" aria-hidden="true" /></button>
+                <button type="button" aria-label="Next story picture" onClick={() => setImageIndex((index) => (index + 1) % storyImages.length)} className="absolute right-5 top-1/2 rounded-full bg-white/90 p-2 text-brand-900 shadow transition hover:scale-110"><ChevronRight className="h-5 w-5" aria-hidden="true" /></button>
               </>}
             </div>
             {storyImages.length > 1 && <div className="mt-2 flex justify-center gap-1.5">{storyImages.map((image, index) => <button type="button" key={image} aria-label={`Show story picture ${index + 1}`} onClick={() => setImageIndex(index)} className={`h-2 rounded-full transition-all ${index === imageIndex ? 'w-6 bg-brand-600' : 'w-2 bg-brand-400/40'}`} />)}</div>}
@@ -309,6 +319,7 @@ export default function ReadingSessionPage() {
                 <p className="text-sm text-brand-700">Generating this voice’s book audio… It will be saved for the next listen.</p>
               ) : (
                 <Button type="button" onClick={listenToBook} loading={loadingNarration} disabled={!selectedVoiceProfileId}>
+                  <Volume2 className="h-4 w-4" aria-hidden="true" />
                   {selectedNarration?.status === 'ready' ? 'Listen again' : 'Generate & listen'}
                 </Button>
               )}
@@ -362,7 +373,11 @@ export default function ReadingSessionPage() {
               </p>
               <div className="flex flex-col items-center gap-3 py-2 text-center">
                 <button type="button" aria-label={listening ? 'Stop recording' : 'Start recording'} onClick={listening ? stopListening : startListening} disabled={session.is_complete || transcribing} className={`mic-orb ${listening ? 'is-listening' : ''} disabled:opacity-50`}>
-                  <span className="text-3xl" aria-hidden="true">{listening ? '◼' : '🎙'}</span>
+                  {listening ? (
+                    <Square className="h-8 w-8 fill-current" aria-hidden="true" />
+                  ) : (
+                    <Mic2 className="h-9 w-9" aria-hidden="true" />
+                  )}
                 </button>
                 <p className="text-sm font-medium text-brand-900">{listening ? 'Listening… tap to finish' : transcribing ? 'Listening back to your words…' : 'Tap the microphone to read'}</p>
                 <p className="text-xs text-muted">Each paragraph contains 6 sentences. Earn up to 50 leaderboard points based on your accuracy.</p>
@@ -375,6 +390,7 @@ export default function ReadingSessionPage() {
                   loading={checking}
                   disabled={session.is_complete || transcribing || !transcript.trim()}
                 >
+                  <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
                   Check pronunciation
                 </Button>
               </div>

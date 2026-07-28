@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { ArrowLeft, X } from 'lucide-react';
 import { Logo } from '@/components/layout/Logo';
 import { getNavItems } from '@/components/layout/nav-items';
 import { useAuth } from '@/lib/auth-context';
@@ -36,12 +37,10 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           <div className="flex items-center justify-between gap-2">
             <Logo />
             <button type="button" onClick={onClose} className="rounded-lg p-2 text-cyan-100 transition-transform hover:bg-white/10 active:scale-90 lg:hidden" aria-label="Go back and close menu">
-              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" aria-hidden="true">
-                <path d="m15 18-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <ArrowLeft className="h-6 w-6" strokeWidth={2.25} aria-hidden="true" />
             </button>
             <button type="button" onClick={() => router.push('/dashboard')} className="hidden rounded-lg p-2 text-cyan-100 transition-transform hover:bg-white/10 active:scale-90 lg:block" aria-label="Close sidebar and return to dashboard">
-              <span aria-hidden="true" className="text-xl leading-none">×</span>
+              <X className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -60,7 +59,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                     : 'text-blue-100 hover:bg-white/10'
                 }`}
               >
-                <NavIcon href={item.href} active={active} />
+                <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg ${active ? 'bg-brand-400/15 text-brand-600' : 'bg-white/10 text-cyan-100'}`} aria-hidden="true">
+                  <item.icon className="h-4 w-4" strokeWidth={2.1} />
+                </span>
                 <span>{item.label}</span>
               </Link>
             );
@@ -73,9 +74,4 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       </aside>
     </>
   );
-}
-
-function NavIcon({ href, active }: { href: string; active: boolean }) {
-  const icon = href.includes('dashboard') ? '⌂' : href.includes('children') ? '●' : href.includes('book') ? '▤' : href.includes('voice') ? '◖' : href.includes('leaderboard') ? '★' : href.includes('account') ? '◉' : href.includes('parent') || href.includes('teacher') ? '♟' : '+';
-  return <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg text-base ${active ? 'bg-brand-400/15 text-brand-600' : 'bg-white/10 text-cyan-100'}`} aria-hidden="true">{icon}</span>;
 }

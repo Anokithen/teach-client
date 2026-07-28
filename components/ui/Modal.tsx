@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect, useId, useRef } from 'react';
+import { X } from 'lucide-react';
 
 interface ModalProps {
   open: boolean;
@@ -72,7 +73,7 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
           className="absolute right-3 top-3 rounded-lg p-2 text-xl leading-none text-muted hover:bg-bg hover:text-brand-900"
           aria-label="Close dialog"
         >
-          <span aria-hidden="true">×</span>
+          <X className="h-5 w-5" aria-hidden="true" />
         </button>
         {title && (
           <h2 id={titleId} className="mb-3 pr-8 text-lg font-semibold text-brand-900">

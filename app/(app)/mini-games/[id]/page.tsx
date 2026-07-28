@@ -2,6 +2,23 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
+import {
+  ArrowRight,
+  Check,
+  CheckCircle2,
+  Flame,
+  Gamepad2,
+  Lightbulb,
+  PartyPopper,
+  Pencil,
+  Puzzle,
+  RotateCcw,
+  Sparkles,
+  Star,
+  Trophy,
+  X,
+  type LucideIcon,
+} from 'lucide-react';
 import { childrenApi, miniGamesApi } from '@/lib/endpoints';
 import { Alert } from '@/components/ui/Alert';
 import { Badge } from '@/components/ui/Badge';
@@ -45,10 +62,10 @@ function shuffleLetters(word: string) {
   return shuffled;
 }
 
-const GAME_DETAILS: Record<string, { icon: string; title: string; goal: string; instructions: string }> = {
-  word_puzzle: { icon: '🧩', title: 'Word builder', goal: 'Build story words', instructions: 'Look at the mixed-up letters, then type the word in the correct order.' },
-  spelling: { icon: '✏️', title: 'Spelling practice', goal: 'Practise key words', instructions: 'Read each book word carefully and type it with the correct spelling.' },
-  quiz: { icon: '🌟', title: 'Story word adventure', goal: 'Unlock story words', instructions: 'Use clues, hints, and story memory to choose the best answer.' },
+const GAME_DETAILS: Record<string, { icon: LucideIcon; title: string; goal: string; instructions: string }> = {
+  word_puzzle: { icon: Puzzle, title: 'Word builder', goal: 'Build story words', instructions: 'Look at the mixed-up letters, then type the word in the correct order.' },
+  spelling: { icon: Pencil, title: 'Spelling practice', goal: 'Practise key words', instructions: 'Read each book word carefully and type it with the correct spelling.' },
+  quiz: { icon: Sparkles, title: 'Story word adventure', goal: 'Unlock story words', instructions: 'Use clues, hints, and story memory to choose the best answer.' },
 };
 
 export default function MiniGamePage() {
@@ -95,7 +112,7 @@ export default function MiniGamePage() {
 
   const isQuiz = game?.game_type === 'quiz';
   const isSpelling = game?.game_type === 'spelling';
-  const details = GAME_DETAILS[game?.game_type || ''] || { icon: '🎮', title: 'Mini-game', goal: 'Practise reading', instructions: 'Answer every question to complete the activity.' };
+  const details = GAME_DETAILS[game?.game_type || ''] || { icon: Gamepad2, title: 'Mini-game', goal: 'Practise reading', instructions: 'Answer every question to complete the activity.' };
   const prompts = useMemo<GamePrompt[]>(() => {
     const content = (game?.content ?? {}) as GameContent;
     const wordLimit = isSpelling ? (spellingDifficulty ? SPELLING_WORD_COUNTS[spellingDifficulty] : 0) : MAX_WORD_BUILDER_WORDS;
@@ -220,11 +237,12 @@ export default function MiniGamePage() {
   const currentQuizPrompt = prompts[quizIndex];
   const currentQuizAnswer = currentQuizPrompt ? answers[quizIndex] : undefined;
   const currentQuizCorrect = Boolean(currentQuizPrompt && currentQuizAnswer && currentQuizAnswer.trim().toLowerCase() === currentQuizPrompt.answer.toLowerCase());
+  const GameIcon = details.icon;
 
   return (
     <div className="max-w-2xl">
       <div className="relative overflow-hidden rounded-2xl bg-brand-400/10 p-5">
-        <span className="text-3xl" aria-hidden="true">{details.icon}</span>
+        <GameIcon className="h-8 w-8 text-brand-600" aria-hidden="true" />
         <h1 className="mt-2 text-2xl font-semibold text-brand-900">{details.title}</h1>
         <p className="mt-1 text-sm font-medium text-brand-600">Goal: {details.goal}</p>
         <p className="mt-2 text-sm text-muted">{details.instructions}</p>
@@ -259,19 +277,19 @@ export default function MiniGamePage() {
 
         {isQuiz ? result ? (
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-100 via-white to-violet-200/70 p-7 text-center shadow-inner">
-            <span className="absolute left-6 top-4 animate-bounce text-2xl" aria-hidden="true">✨</span>
-            <span className="absolute right-8 top-8 animate-pulse text-2xl" aria-hidden="true">🎈</span>
-            <div className="animate-bounce text-6xl" aria-hidden="true">🏆</div>
+            <Sparkles className="absolute left-6 top-4 h-6 w-6 animate-bounce text-amber-500" aria-hidden="true" />
+            <PartyPopper className="absolute right-8 top-8 h-7 w-7 animate-pulse text-violet-500" aria-hidden="true" />
+            <Trophy className="mx-auto h-16 w-16 animate-bounce text-amber-500" aria-hidden="true" />
             <h2 className="mt-3 text-2xl font-black text-brand-900">Story word champion!</h2>
             <p className="mt-2 text-lg font-semibold text-brand-700">You unlocked {correctAnswers} of {prompts.length} story words.</p>
             <div className="mx-auto mt-5 max-w-sm rounded-2xl bg-white/85 p-4 shadow-sm"><p className="text-sm text-muted">Your reward</p><p className="mt-1 text-3xl font-black text-brand-900">{result.score} <span className="text-base text-brand-600">points</span></p></div>
             <div className="mt-5 flex flex-wrap justify-center gap-2">
               {prompts.map((prompt, index) => {
                 const correct = answers[index]?.trim().toLowerCase() === prompt.answer.toLowerCase();
-                return <span key={index} className={`rounded-full px-3 py-1.5 text-xs font-bold ${correct ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>{correct ? '✓' : '•'} {prompt.word || prompt.answer}</span>;
+                return <span key={index} className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold ${correct ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>{correct ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <X className="h-3.5 w-3.5" aria-hidden="true" />} {prompt.word || prompt.answer}</span>;
               })}
             </div>
-            <Button type="button" onClick={replayQuiz} className="mt-6">Play again</Button>
+            <Button type="button" onClick={replayQuiz} className="mt-6"><RotateCcw className="h-4 w-4" aria-hidden="true" />Play again</Button>
           </div>
         ) : (
           <div className="space-y-5">
@@ -279,19 +297,19 @@ export default function MiniGamePage() {
               <EmptyState title="Quiz questions are coming soon" description="This book needs a little more story content before the quiz can begin." />
             ) : (
               <>
-                <div className="flex items-center justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-600">Question {quizIndex + 1} of {prompts.length}</p><p className="mt-1 text-sm font-semibold text-brand-900">{currentQuizCorrect ? 'Great story memory!' : currentQuizAnswer ? 'Nice try — read the clue again.' : 'Pick the best answer.'}</p></div><span className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-black text-amber-800">🔥 {correctAnswers} points</span></div>
+                <div className="flex items-center justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-600">Question {quizIndex + 1} of {prompts.length}</p><p className="mt-1 text-sm font-semibold text-brand-900">{currentQuizCorrect ? 'Great story memory!' : currentQuizAnswer ? 'Nice try — read the clue again.' : 'Pick the best answer.'}</p></div><span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1.5 text-xs font-black text-amber-800"><Flame className="h-3.5 w-3.5" aria-hidden="true" />{correctAnswers} points</span></div>
                 <div className="h-2 overflow-hidden rounded-full bg-brand-100"><div className="h-full rounded-full bg-gradient-to-r from-brand-500 via-violet-500 to-fuchsia-500 transition-all" style={{ width: `${((quizIndex + 1) / prompts.length) * 100}%` }} /></div>
-                <div className="relative overflow-hidden rounded-3xl border-2 border-violet-200 bg-gradient-to-br from-violet-50 via-white to-cyan-50 p-6 text-center"><span className="absolute -right-2 -top-3 text-5xl opacity-20" aria-hidden="true">🌟</span><p className="text-xl font-extrabold leading-snug text-brand-900">{currentQuizPrompt.question}</p><p className="mt-3 text-xs font-semibold text-violet-700">Story word detective clue</p></div>
+                <div className="relative overflow-hidden rounded-3xl border-2 border-violet-200 bg-gradient-to-br from-violet-50 via-white to-cyan-50 p-6 text-center"><Star className="absolute -right-2 -top-3 h-14 w-14 text-violet-500 opacity-20" aria-hidden="true" /><p className="text-xl font-extrabold leading-snug text-brand-900">{currentQuizPrompt.question}</p><p className="mt-3 text-xs font-semibold text-violet-700">Story word detective clue</p></div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {currentQuizPrompt.options.map((option, optionIndex) => {
                     const selected = currentQuizAnswer === option;
                     const correctOption = currentQuizAnswer && option === currentQuizPrompt.answer;
                     const optionState = selected ? (currentQuizCorrect ? 'border-emerald-400 bg-emerald-50 text-emerald-900' : 'border-rose-400 bg-rose-50 text-rose-900') : correctOption ? 'border-emerald-300 bg-emerald-50/60 text-emerald-900' : 'border-brand-100 bg-surface text-brand-900';
-                    return <button key={option} type="button" disabled={Boolean(currentQuizAnswer)} onClick={() => chooseQuizAnswer(option)} className={`group flex items-center gap-3 rounded-2xl border-2 p-4 text-left font-semibold transition hover:-translate-y-0.5 hover:border-violet-400 hover:shadow-md disabled:cursor-default ${optionState}`}><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/80 text-sm font-black text-violet-700 shadow-sm">{String.fromCharCode(65 + optionIndex)}</span><span>{option}</span>{selected && <span className="ml-auto text-xl" aria-hidden="true">{currentQuizCorrect ? '✅' : '💡'}</span>}</button>;
+                    return <button key={option} type="button" disabled={Boolean(currentQuizAnswer)} onClick={() => chooseQuizAnswer(option)} className={`group flex items-center gap-3 rounded-2xl border-2 p-4 text-left font-semibold transition hover:-translate-y-0.5 hover:border-violet-400 hover:shadow-md disabled:cursor-default ${optionState}`}><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/80 text-sm font-black text-violet-700 shadow-sm">{String.fromCharCode(65 + optionIndex)}</span><span>{option}</span>{selected && <span className="ml-auto" aria-hidden="true">{currentQuizCorrect ? <CheckCircle2 className="h-5 w-5 text-emerald-600" /> : <Lightbulb className="h-5 w-5 text-amber-600" />}</span>}</button>;
                   })}
                 </div>
                 {currentQuizAnswer && <div className={`rounded-2xl p-4 ${currentQuizCorrect ? 'bg-emerald-100 text-emerald-900' : 'bg-amber-100 text-amber-900'}`}><p className="font-bold">{currentQuizCorrect ? `You got it! +${quizHintsUsed[quizIndex] ? 5 : 10} points` : `The story answer is “${currentQuizPrompt.answer}”.`}</p><p className="mt-1 text-sm">{currentQuizPrompt.explanation || 'That answer fits the story context.'}</p></div>}
-                <div className="flex flex-wrap items-center justify-between gap-3"><button type="button" onClick={useQuizHint} disabled={Boolean(currentQuizAnswer) || Boolean(quizHintsUsed[quizIndex])} className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-bold text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60">💡 {quizHintsUsed[quizIndex] ? 'Hint used' : 'Need a hint? (-5 points)'}</button>{quizHintsUsed[quizIndex] && !currentQuizAnswer && <p className="text-sm font-medium text-amber-800">{currentQuizPrompt.hint || 'Think about how the word was used in the story.'}</p>}{currentQuizAnswer && <Button type="button" onClick={quizIndex === prompts.length - 1 ? finishGame : nextQuizQuestion} loading={submitting}>{quizIndex === prompts.length - 1 ? 'Collect my points' : 'Next story word →'}</Button>}</div>
+                <div className="flex flex-wrap items-center justify-between gap-3"><button type="button" onClick={useQuizHint} disabled={Boolean(currentQuizAnswer) || Boolean(quizHintsUsed[quizIndex])} className="inline-flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-bold text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"><Lightbulb className="h-4 w-4" aria-hidden="true" />{quizHintsUsed[quizIndex] ? 'Hint used' : 'Need a hint? (-5 points)'}</button>{quizHintsUsed[quizIndex] && !currentQuizAnswer && <p className="text-sm font-medium text-amber-800">{currentQuizPrompt.hint || 'Think about how the word was used in the story.'}</p>}{currentQuizAnswer && <Button type="button" onClick={quizIndex === prompts.length - 1 ? finishGame : nextQuizQuestion} loading={submitting}>{quizIndex === prompts.length - 1 ? <><Trophy className="h-4 w-4" aria-hidden="true" />Collect my points</> : <>Next story word<ArrowRight className="h-4 w-4" aria-hidden="true" /></>}</Button>}</div>
               </>
             )}
           </div>
@@ -302,7 +320,7 @@ export default function MiniGamePage() {
           </div>
         ) : isSpelling && spellingStage === 'memorise' ? (
           <div className="relative overflow-hidden rounded-2xl border-2 border-brand-300 bg-gradient-to-br from-brand-50 via-white to-brand-400/15 p-5 text-center">
-            <span className="absolute left-4 top-3 animate-pulse text-2xl" aria-hidden="true">✨</span><span className="absolute bottom-3 right-4 animate-bounce text-2xl" aria-hidden="true">🌟</span>
+            <Sparkles className="absolute left-4 top-3 h-6 w-6 animate-pulse text-violet-500" aria-hidden="true" /><Star className="absolute bottom-3 right-4 h-6 w-6 animate-bounce text-amber-500" aria-hidden="true" />
             <p className="text-sm font-bold text-brand-700">Memory magic time!</p>
             <p className="mt-1 text-sm text-muted">Look carefully and remember these words before the timer ends.</p>
             <div className="mx-auto mt-4 flex h-20 w-20 items-center justify-center rounded-full border-4 border-brand-400 bg-white text-2xl font-black text-brand-900 shadow-lg transition-transform animate-pulse">{memoriseSecondsLeft}</div>
@@ -313,7 +331,7 @@ export default function MiniGamePage() {
           </div>
         ) : isSpelling && spellingStage === 'feedback' && result ? (
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-100 via-brand-50 to-brand-300/20 p-7 text-center">
-            <div className="animate-bounce text-6xl" aria-hidden="true">🏆</div>
+            <Trophy className="mx-auto h-16 w-16 animate-bounce text-amber-500" aria-hidden="true" />
             <h2 className="mt-3 text-2xl font-bold text-brand-900">Fantastic spelling!</h2>
             <p className="mt-2 text-lg text-brand-700">You spelled {correctAnswers} out of {prompts.length} words correctly.</p>
             <div className="mt-4 space-y-2 text-left">
@@ -325,7 +343,7 @@ export default function MiniGamePage() {
                 </div>;
               })}
             </div>
-            <p className="mt-3 rounded-xl bg-white/80 px-4 py-3 font-bold text-brand-900 shadow-sm">You earned {result.score} points! ✨</p>
+            <p className="mt-3 inline-flex items-center gap-2 rounded-xl bg-white/80 px-4 py-3 font-bold text-brand-900 shadow-sm">You earned {result.score} points! <Sparkles className="h-5 w-5 text-amber-500" aria-hidden="true" /></p>
           </div>
         ) : (
           <>
@@ -369,7 +387,7 @@ export default function MiniGamePage() {
                     </button>
                   ))}
                 </div>
-                <button type="button" onClick={() => resetLetters(index)} className="mx-auto mt-3 block text-xs font-medium text-brand-600 hover:underline">Start this word again</button>
+                <button type="button" onClick={() => resetLetters(index)} className="mx-auto mt-3 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline"><RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />Start this word again</button>
               </div>
             ) : (
               <Input className="mt-3" value={answers[index] ?? ''} onChange={(e) => setAnswers({ ...answers, [index]: e.target.value })} placeholder="Type the unscrambled word" />
@@ -379,7 +397,7 @@ export default function MiniGamePage() {
 
             <Alert>{submitError}</Alert>
             {result && <Alert tone="success">Great work! You earned {result.score} points. Your score has been saved to the leaderboard.</Alert>}
-            <Button type="button" onClick={finishGame} loading={submitting} disabled={Boolean(result)} className="w-full">{result ? 'Activity complete!' : isSpelling ? 'See my results!' : 'Finish game'}</Button>
+            <Button type="button" onClick={finishGame} loading={submitting} disabled={Boolean(result)} className="w-full"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />{result ? 'Activity complete!' : isSpelling ? 'See my results!' : 'Finish game'}</Button>
           </>
         )}
       </Card>

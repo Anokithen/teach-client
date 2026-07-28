@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { Sparkles } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { Logo } from '@/components/layout/Logo';
 
@@ -57,7 +58,10 @@ export default function LandingPage() {
       <main className="mx-auto max-w-6xl px-6">
         <section className="grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-24">
           <div>
-            <p className="mb-4 inline-flex items-center rounded-full bg-brand-400/20 px-3 py-1 text-xs font-semibold text-cyan-100 ring-1 ring-brand-400/50">✦ For parents & teachers</p>
+            <p className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-brand-400/20 px-3 py-1 text-xs font-semibold text-cyan-100 ring-1 ring-brand-400/50">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+              For parents &amp; teachers
+            </p>
             <h1 className="text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
               A reading companion that sounds like home.
             </h1>

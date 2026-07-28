@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import { ShieldPlus } from 'lucide-react';
 import { adminApi } from '@/lib/endpoints';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -40,7 +41,7 @@ export default function NewAdminPage() {
 
   return (
     <div className="max-w-md">
-      <PageHeader eyebrow="Admin workspace" title="Add an admin" icon="🛡️" description="Bootstrap another administrator account. There&apos;s no public sign-up for this role." />
+      <PageHeader eyebrow="Admin workspace" title="Add an admin" icon={ShieldPlus} description="Bootstrap another administrator account. There&apos;s no public sign-up for this role." />
 
       <Card className="mt-6">
         <form onSubmit={onSubmit} className="space-y-4">
